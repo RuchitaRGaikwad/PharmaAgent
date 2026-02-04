@@ -1,0 +1,16 @@
+id,name,stock_level,unit_type,prescription_required,price,dosage_info
+1,Paracetamol 500mg,150,tablets,false,5.99,Take 1-2 tablets every 4-6 hours
+2,Amoxicillin 250mg,80,capsules,true,12.50,Take 1 capsule 3 times daily
+3,Metformin 500mg,200,tablets,true,8.99,Take 1 tablet twice daily with meals
+4,Ibuprofen 400mg,120,tablets,false,6.50,Take 1 tablet every 6-8 hours
+5,Lisinopril 10mg,95,tablets,true,15.00,Take 1 tablet once daily
+6,Omeprazole 20mg,180,capsules,false,9.99,Take 1 capsule daily before breakfast
+7,Cetirizine 10mg,250,tablets,false,4.99,Take 1 tablet daily
+8,Azithromycin 500mg,45,tablets,true,22.50,Take 1 tablet daily for 3-5 days
+9,Amlodipine 5mg,160,tablets,true,11.00,Take 1 tablet once daily
+10,Losartan 50mg,130,tablets,true,13.50,Take 1 tablet once daily
+11,Pantoprazole 40mg,90,tablets,true,14.99,Take 1 tablet daily before meals
+12,Vitamin D3 1000IU,300,softgels,false,7.99,Take 1 softgel daily
+13,Aspirin 81mg,400,tablets,false,3.99,Take 1 tablet daily
+14,Atorvastatin 20mg,75,tablets,true,18.00,Take 1 tablet daily at bedtime
+15,Gabapentin 300mg,60,capsules,true,24.99,Take 1 capsule 3 times daily
