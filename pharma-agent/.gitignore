@@ -1,0 +1,86 @@
+# OS & Editor Junk
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+.vscode/
+.idea/
+.settings/
+*.sublime-workspace
+
+# Node / JS / Frontend
+node_modules/
+dist/
+build/
+.next/
+out/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Python / Backend
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment Variables (CRITICAL)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.*
+
+# AI Models & Cache (Ollama / HuggingFace)
+.ollama/
+models/
+*.gguf
+*.bin
+*.pt
+*.pth
+*.safetensors
+*.onnx
+
+# Local Databases
+*.db
+*.sqlite
+data/
+uploads/
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+junit.xml
+
+# Temporary Files
+tmp/
+temp/

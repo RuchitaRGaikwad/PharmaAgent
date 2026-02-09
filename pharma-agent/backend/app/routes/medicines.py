@@ -23,6 +23,8 @@ class MedicineBase(BaseModel):
     prescription_required: bool = False
     price: float = 0.0
     dosage_info: Optional[str] = None
+    category: str = "General"
+    safety_notes: Optional[str] = None
 
 
 class MedicineResponse(MedicineBase):
@@ -52,14 +54,18 @@ def get_medicines(
     search: Optional[str] = None,
     prescription_only: Optional[bool] = None,
     in_stock: Optional[bool] = None,
+    category: Optional[str] = None,
+    sort: Optional[str] = Query(None, regex="^(price_asc|price_desc|name_asc|name_desc|stock_asc|stock_desc)$"),
     db: Session = Depends(get_db)
 ):
     """
-    Get all medicines with optional filtering.
+    Get all medicines with optional filtering and sorting.
     
     - **search**: Search by medicine name
     - **prescription_only**: Filter by prescription requirement
     - **in_stock**: Filter by stock availability
+    - **category**: Filter by category (e.g., "Pain Relief", "Diabetes")
+    - **sort**: Sort results (price_asc, price_desc, name_asc, name_desc, stock_asc, stock_desc)
     """
     query = db.query(Medicine)
     
@@ -74,6 +80,24 @@ def get_medicines(
             query = query.filter(Medicine.stock_level > 0)
         else:
             query = query.filter(Medicine.stock_level == 0)
+    
+    if category:
+        query = query.filter(Medicine.category.ilike(f"%{category}%"))
+    
+    # Apply sorting
+    if sort:
+        if sort == "price_asc":
+            query = query.order_by(Medicine.price.asc())
+        elif sort == "price_desc":
+            query = query.order_by(Medicine.price.desc())
+        elif sort == "name_asc":
+            query = query.order_by(Medicine.name.asc())
+        elif sort == "name_desc":
+            query = query.order_by(Medicine.name.desc())
+        elif sort == "stock_asc":
+            query = query.order_by(Medicine.stock_level.asc())
+        elif sort == "stock_desc":
+            query = query.order_by(Medicine.stock_level.desc())
     
     return query.offset(skip).limit(limit).all()
 

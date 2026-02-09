@@ -1,7 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Heart, User, Calendar, Phone, Mail, MapPin } from 'lucide-react';
 
 function HealthProfile() {
+    const { t } = useTranslation();
+
     // Mock customer data
     const customer = {
         name: 'John Doe',
@@ -20,15 +23,15 @@ function HealthProfile() {
     return (
         <div className="page-container">
             <div className="page-header">
-                <h1 className="page-title">❤️ Health Profile</h1>
-                <p className="page-subtitle">Your personal health information and medication history</p>
+                <h1 className="page-title">❤️ {t('health.title')}</h1>
+                <p className="page-subtitle">{t('health.subtitle')}</p>
             </div>
 
             <div className="cards-grid" style={{ marginBottom: '24px' }}>
                 <div className="medicine-card">
                     <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <User size={20} />
-                        Personal Information
+                        {t('health.personal_info')}
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
@@ -49,7 +52,7 @@ function HealthProfile() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
                             <Calendar size={16} />
-                            Born: {new Date(customer.dob).toLocaleDateString()}
+                            {t('health.born')}: {new Date(customer.dob).toLocaleDateString()}
                         </div>
                     </div>
                 </div>
@@ -57,7 +60,7 @@ function HealthProfile() {
                 <div className="medicine-card">
                     <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Heart size={20} />
-                        Medical Conditions
+                        {t('health.conditions')}
                     </h3>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         {customer.conditions.map((condition, i) => (
@@ -66,7 +69,7 @@ function HealthProfile() {
                     </div>
 
                     <h4 style={{ margin: '20px 0 12px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                        Allergies
+                        {t('health.allergies')}
                     </h4>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         {customer.allergies.map((allergy, i) => (
@@ -78,14 +81,14 @@ function HealthProfile() {
 
             <div className="table-container">
                 <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
-                    <h3>Current Medications</h3>
+                    <h3>{t('health.medications')}</h3>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Medication</th>
-                            <th>Dosage</th>
-                            <th>Frequency</th>
+                            <th>{t('health.medication_name')}</th>
+                            <th>{t('health.dosage')}</th>
+                            <th>{t('health.frequency')}</th>
                         </tr>
                     </thead>
                     <tbody>

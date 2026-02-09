@@ -28,7 +28,7 @@ from .database import engine, get_db, init_db, SessionLocal
 from .models import Base, Medicine, Customer, OrderHistory, Order, ProactiveAlert
 
 # Import routes
-from .routes import medicines, orders, customers, webhooks, alerts
+from .routes import medicines, orders, customers, webhooks, alerts, prescriptions, settings, admin, cart
 
 
 def load_csv_data(db: Session):
@@ -52,7 +52,9 @@ def load_csv_data(db: Session):
                         unit_type=row['unit_type'],
                         prescription_required=row['prescription_required'].lower() == 'true',
                         price=float(row['price']),
-                        dosage_info=row.get('dosage_info', '')
+                        dosage_info=row.get('dosage_info', ''),
+                        category=row.get('category', 'General'),
+                        safety_notes=row.get('safety_notes', '')
                     )
                     db.add(medicine)
             db.commit()
@@ -142,6 +144,7 @@ app = FastAPI(
     - 🔒 **Safety Enforcement**: Prescription validation and stock checks
     - 📊 **Predictive Refills**: AI-powered refill predictions
     - ⚡ **Automated Actions**: Webhook-triggered fulfillment
+    - 📷 **Prescription OCR**: Local image text extraction
     
     ### Agents
     
@@ -149,6 +152,7 @@ app = FastAPI(
     2. **Safety Agent**: Validates orders against policies
     3. **Refill Agent**: Predicts and alerts on upcoming refills
     4. **Action Agent**: Executes approved orders
+    5. **Symptom Agent**: Recommends OTC medicines based on symptoms
     """,
     version="1.0.0",
     lifespan=lifespan
@@ -169,6 +173,10 @@ app.include_router(orders.router)
 app.include_router(customers.router)
 app.include_router(webhooks.router)
 app.include_router(alerts.router)
+app.include_router(prescriptions.router, prefix="/prescriptions", tags=["Prescriptions"])
+app.include_router(settings.router)
+app.include_router(admin.router)
+app.include_router(cart.router)
 
 
 # Chat endpoint schema
@@ -213,6 +221,26 @@ def health_check():
     }
 
 
+# Global orchestrator instance
+_orchestrator = None
+
+def get_orchestrator(db: Session):
+    """Get or create singleton orchestrator instance."""
+    global _orchestrator
+    if _orchestrator is None:
+        from agents.orchestrator import AgentOrchestrator
+        _orchestrator = AgentOrchestrator(db)
+    # Update db session (since it's per-request)
+    _orchestrator.db = db
+    _orchestrator.conversation_agent.db = db
+    _orchestrator.safety_agent.db = db
+    _orchestrator.refill_agent.db = db
+    _orchestrator.action_agent.db = db
+    _orchestrator.symptom_agent.db = db
+    _orchestrator.language_agent.db = db
+    return _orchestrator
+
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(
     request: ChatRequest,
@@ -223,10 +251,7 @@ async def chat_endpoint(
     Routes messages through the agent orchestrator.
     """
     try:
-        # Import orchestrator (lazy import to avoid circular deps)
-        from agents.orchestrator import AgentOrchestrator
-        
-        orchestrator = AgentOrchestrator(db)
+        orchestrator = get_orchestrator(db)
         result = await orchestrator.process_message(
             message=request.message,
             session_id=request.session_id,

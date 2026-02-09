@@ -13,6 +13,7 @@ import HealthProfile from './pages/HealthProfile';
 import Orders from './pages/Orders';
 import SafetyAlerts from './pages/SafetyAlerts';
 import SettingsPage from './pages/Settings';
+import AdminDashboard from './pages/AdminDashboard';
 
 /**
  * App - Root Application Component
@@ -33,6 +34,7 @@ function App() {
                     <Route path="orders" element={<Orders />} />
                     <Route path="alerts" element={<SafetyAlerts />} />
                     <Route path="settings" element={<SettingsPage />} />
+                    <Route path="admin" element={<AdminDashboard />} />
                 </Route>
             </Routes>
         </BrowserRouter>

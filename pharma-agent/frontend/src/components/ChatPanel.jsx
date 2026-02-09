@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Send, Mic, Upload, Bot, User, AlertTriangle, Shield, Check } from 'lucide-react';
 import { sendMessage } from '../services/api';
 
@@ -13,33 +14,46 @@ import { sendMessage } from '../services/api';
  * - Typing indicator
  */
 function ChatPanel() {
-    const [messages, setMessages] = useState([
-        {
-            id: 1,
-            role: 'assistant',
-            content: `Hello! 👋 I'm PharmaAgent, your AI Pharmacist assistant.
+    const { t, i18n } = useTranslation();
 
-I'm here to help you with:
-• 💊 OTC medicine recommendations for common symptoms
-• 📋 Checking medicine availability
-• 🔍 Drug safety information
-• ⏰ Refill reminders
+    // Generate welcome message based on current language
+    const getWelcomeMessage = () => ({
+        id: 1,
+        role: 'assistant',
+        content: `${t('chat.welcome_greeting')}
 
-**Before we start:**
-- Do you have any known **allergies** to medications?
-- Are you currently taking any **other medicines**?
+${t('chat.welcome_intro')}
+• 💊 ${t('chat.help_otc')}
+• 📋 ${t('chat.help_availability')}
+• 🔍 ${t('chat.help_safety')}
+• ⏰ ${t('chat.help_refills')}
 
-How can I help you today?`,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            status: 'success'
-        }
-    ]);
+**${t('chat.before_start')}**
+- ${t('chat.question_allergies')}
+- ${t('chat.question_medicines')}
+
+${t('chat.how_help')}`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'success'
+    });
+
+    const [messages, setMessages] = useState([getWelcomeMessage()]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [sessionId] = useState(() => `session_${Date.now()}`);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
+
+    // Update welcome message when language changes
+    useEffect(() => {
+        setMessages(prev => {
+            if (prev.length === 1 && prev[0].id === 1) {
+                return [getWelcomeMessage()];
+            }
+            return prev;
+        });
+    }, [i18n.language]);
 
     // Auto-scroll to latest message
     useEffect(() => {
@@ -71,7 +85,7 @@ How can I help you today?`,
             setMessages(prev => [...prev, {
                 id: Date.now(),
                 role: 'assistant',
-                content: response.response || response.user_message || 'I received your message.',
+                content: response.response || response.user_message || t('chat.received_message'),
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 status: 'success',
                 urgency: response.urgency,
@@ -81,7 +95,7 @@ How can I help you today?`,
             setMessages(prev => [...prev, {
                 id: Date.now(),
                 role: 'assistant',
-                content: 'I apologize, but I encountered a connection error. Please ensure the backend is running and try again.',
+                content: t('chat.connection_error'),
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 status: 'error'
             }]);
@@ -105,7 +119,11 @@ How can I help you today?`,
                 const recognition = new SpeechRecognition();
                 recognition.continuous = false;
                 recognition.interimResults = false;
-                recognition.lang = 'en-IN';
+                recognition.lang = i18n.language === 'hi' ? 'hi-IN' :
+                    i18n.language === 'mr' ? 'mr-IN' :
+                        i18n.language === 'es' ? 'es-ES' :
+                            i18n.language === 'fr' ? 'fr-FR' :
+                                i18n.language === 'de' ? 'de-DE' : 'en-IN';
 
                 recognition.onresult = (event) => {
                     const transcript = event.results[0][0].transcript;
@@ -139,21 +157,21 @@ How can I help you today?`,
                         <Bot size={20} />
                     </div>
                     <div className="agent-details">
-                        <span className="agent-name">AI Pharmacist</span>
+                        <span className="agent-name">{t('chat.agent_name')}</span>
                         <span className="agent-status">
                             <span className="status-dot green"></span>
-                            Online • Verified
+                            {t('chat.agent_status')}
                         </span>
                     </div>
                 </div>
                 <div className="agent-badges">
                     <span className="agent-badge">
                         <Shield size={14} />
-                        Safety Enabled
+                        {t('chat.safety_enabled')}
                     </span>
                     <span className="agent-badge">
                         <Check size={14} />
-                        WHO Compliant
+                        {t('chat.who_compliant')}
                     </span>
                 </div>
             </div>
@@ -163,8 +181,8 @@ How can I help you today?`,
                 {messages.length === 0 ? (
                     <div className="empty-state">
                         <Bot size={48} />
-                        <h3>Start a conversation</h3>
-                        <p>Describe your symptoms or ask about medicines</p>
+                        <h3>{t('chat.start_conversation')}</h3>
+                        <p>{t('chat.describe_symptoms')}</p>
                     </div>
                 ) : (
                     messages.map((msg) => (
@@ -209,8 +227,8 @@ How can I help you today?`,
                 <div className="input-wrapper">
                     <button
                         className="input-action-btn"
-                        title="Upload prescription"
-                        aria-label="Upload prescription"
+                        title={t('chat.upload_prescription')}
+                        aria-label={t('chat.upload_prescription')}
                     >
                         <Upload size={20} />
                     </button>
@@ -218,20 +236,20 @@ How can I help you today?`,
                     <textarea
                         ref={inputRef}
                         className="chat-input"
-                        placeholder="Type your message or describe symptoms..."
+                        placeholder={t('chat.input_placeholder')}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
                         disabled={isLoading}
                         rows={1}
-                        aria-label="Chat message input"
+                        aria-label={t('chat.input_label')}
                     />
 
                     <button
                         className={`input-action-btn voice ${isRecording ? 'recording' : ''}`}
                         onClick={toggleRecording}
-                        title={isRecording ? 'Stop recording' : 'Voice input'}
-                        aria-label={isRecording ? 'Stop recording' : 'Voice input'}
+                        title={isRecording ? t('chat.stop_recording') : t('chat.voice_input')}
+                        aria-label={isRecording ? t('chat.stop_recording') : t('chat.voice_input')}
                     >
                         <Mic size={20} />
                     </button>
@@ -240,19 +258,19 @@ How can I help you today?`,
                         className="send-btn"
                         onClick={handleSend}
                         disabled={!input.trim() || isLoading}
-                        title="Send message"
-                        aria-label="Send message"
+                        title={t('chat.send_message')}
+                        aria-label={t('chat.send_message')}
                     >
                         <Send size={18} />
                     </button>
                 </div>
                 <div className="input-hint">
-                    Press Enter to send • AI responses may take a moment
+                    {t('chat.input_hint')}
                 </div>
             </div>
 
             {/* Emergency Escalation Button */}
-            <button className="emergency-btn" title="Emergency Escalation">
+            <button className="emergency-btn" title={t('chat.emergency')}>
                 <AlertTriangle size={20} />
             </button>
         </div>
@@ -260,3 +278,4 @@ How can I help you today?`,
 }
 
 export default ChatPanel;
+

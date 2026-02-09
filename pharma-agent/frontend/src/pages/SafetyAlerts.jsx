@@ -1,8 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, CheckCircle, Clock, Shield } from 'lucide-react';
 
 function SafetyAlerts() {
-    // Mock safety data
+    const { t } = useTranslation();
     const recentChecks = [
         { id: 1, medicine: 'Paracetamol', result: 'safe', timestamp: new Date() },
         { id: 2, medicine: 'Ibuprofen', result: 'safe', timestamp: new Date(Date.now() - 3600000) },
@@ -13,8 +14,8 @@ function SafetyAlerts() {
     return (
         <div className="page-container">
             <div className="page-header">
-                <h1 className="page-title">⚠️ Safety Alerts</h1>
-                <p className="page-subtitle">Drug interaction warnings and safety notifications</p>
+                <h1 className="page-title">⚠️ {t('safety.title')}</h1>
+                <p className="page-subtitle">{t('safety.subtitle')}</p>
             </div>
 
             <div className="cards-grid" style={{ marginBottom: '24px' }}>
@@ -32,12 +33,12 @@ function SafetyAlerts() {
                             <Shield size={24} style={{ color: 'var(--success)' }} />
                         </div>
                         <div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--success)' }}>Safe</div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Current Status</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--success)' }}>{t('safety.safe')}</div>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t('safety.current_status')}</div>
                         </div>
                     </div>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                        No drug interactions detected with your current medications.
+                        {t('safety.all_safe')}
                     </p>
                 </div>
 
@@ -56,17 +57,17 @@ function SafetyAlerts() {
                         </div>
                         <div>
                             <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>{recentChecks.length}</div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Checks Today</div>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t('safety.checks_today')}</div>
                         </div>
                     </div>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                        All safety checks passed successfully.
+                        {t('safety.all_safe_checks')}
                     </p>
                 </div>
             </div>
 
             <h3 style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-                Active Warnings
+                {t('safety.active_alerts')}
             </h3>
 
             {interactionWarnings.length === 0 ? (
@@ -78,9 +79,9 @@ function SafetyAlerts() {
                     marginBottom: '24px'
                 }}>
                     <CheckCircle size={48} style={{ color: 'var(--success)', marginBottom: '16px' }} />
-                    <p style={{ color: 'var(--success)', fontWeight: '500' }}>No active warnings</p>
+                    <p style={{ color: 'var(--success)', fontWeight: '500' }}>{t('safety.no_active_title')}</p>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '8px' }}>
-                        Your medications have been verified for safety
+                        {t('safety.no_active_desc')}
                     </p>
                 </div>
             ) : (
@@ -88,9 +89,9 @@ function SafetyAlerts() {
                     <table>
                         <thead>
                             <tr>
-                                <th>Warning</th>
-                                <th>Severity</th>
-                                <th>Medications</th>
+                                <th>{t('safety.warning')}</th>
+                                <th>{t('safety.severity')}</th>
+                                <th>{t('safety.medications')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -107,16 +108,16 @@ function SafetyAlerts() {
             )}
 
             <h3 style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-                Recent Safety Checks
+                {t('safety.recent_checks')}
             </h3>
 
             <div className="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Medicine</th>
-                            <th>Result</th>
-                            <th>Time</th>
+                            <th>{t('safety.medicine')}</th>
+                            <th>{t('safety.result')}</th>
+                            <th>{t('safety.time')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -126,7 +127,7 @@ function SafetyAlerts() {
                                 <td>
                                     <span className="badge badge-success">
                                         <CheckCircle size={12} style={{ marginRight: '4px' }} />
-                                        Safe
+                                        {t('safety.safe')}
                                     </span>
                                 </td>
                                 <td>{check.timestamp.toLocaleTimeString()}</td>

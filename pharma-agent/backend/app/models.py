@@ -22,6 +22,8 @@ class Medicine(Base):
     prescription_required = Column(Boolean, default=False)
     price = Column(Float, default=0.0)
     dosage_info = Column(String(500), nullable=True)
+    category = Column(String(100), default="General", index=True)  # Pain Relief, Diabetes, etc.
+    safety_notes = Column(Text, nullable=True)  # Safety warnings and drug interactions
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -151,3 +153,58 @@ class AgentTrace(Base):
     reason = Column(Text, nullable=True)
     duration_ms = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class UserSettings(Base):
+    """
+    User settings for preferences, notifications, and system options.
+    Persists user preferences for the Settings page.
+    """
+    __tablename__ = "user_settings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, unique=True, nullable=False, index=True)
+    language = Column(String(10), default="en")
+    dark_mode = Column(Boolean, default=True)
+    push_notifications = Column(Boolean, default=True)
+    email_alerts = Column(Boolean, default=True)
+    sms_alerts = Column(Boolean, default=False)
+    auto_refill = Column(Boolean, default=True)
+    voice_assistant = Column(Boolean, default=True)
+    data_sharing = Column(Boolean, default=False)
+    admin_mode = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Cart(Base):
+    """
+    Shopping cart for users.
+    Each user can have one active cart.
+    """
+    __tablename__ = "carts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan")
+
+
+class CartItem(Base):
+    """
+    Individual items in a shopping cart.
+    """
+    __tablename__ = "cart_items"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    cart_id = Column(Integer, ForeignKey("carts.id"), nullable=False)
+    medicine_id = Column(Integer, ForeignKey("medicines.id"), nullable=False)
+    quantity = Column(Integer, default=1)
+    added_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    cart = relationship("Cart", back_populates="items")
+    medicine = relationship("Medicine")

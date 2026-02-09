@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshCw, Package, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { getOrders } from '../services/api';
 
 function Orders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const { t } = useTranslation();
 
     useEffect(() => {
         loadOrders();
@@ -21,6 +24,16 @@ function Orders() {
         }
     };
 
+    const getStatusText = (status) => {
+        switch (status) {
+            case 'pending': return t('orders.pending');
+            case 'approved': return t('orders.completed');
+            case 'fulfilled': return t('orders.completed');
+            case 'rejected': return t('orders.cancelled');
+            default: return status;
+        }
+    };
+
     const getStatusBadge = (status) => {
         const statusMap = {
             pending: { class: 'badge-warning', icon: Clock },
@@ -33,7 +46,7 @@ function Orders() {
         return (
             <span className={`badge ${config.class}`}>
                 <Icon size={12} style={{ marginRight: '4px' }} />
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+                {getStatusText(status)}
             </span>
         );
     };
@@ -41,8 +54,8 @@ function Orders() {
     return (
         <div className="page-container">
             <div className="page-header">
-                <h1 className="page-title">📦 Orders</h1>
-                <p className="page-subtitle">View and manage your medicine orders</p>
+                <h1 className="page-title">📦 {t('orders.title')}</h1>
+                <p className="page-subtitle">{t('orders.subtitle')}</p>
             </div>
 
             {loading ? (
@@ -57,19 +70,19 @@ function Orders() {
                     borderRadius: '12px'
                 }}>
                     <Package size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
-                    <p style={{ color: 'var(--text-muted)' }}>No orders yet. Start by chatting with the AI Pharmacist!</p>
+                    <p style={{ color: 'var(--text-muted)' }}>{t('orders.no_orders')}</p>
                 </div>
             ) : (
                 <div className="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>Order ID</th>
-                                <th>Medicine</th>
-                                <th>Quantity</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Date</th>
+                                <th>{t('orders.order_id')}</th>
+                                <th>{t('orders.medicine')}</th>
+                                <th>{t('orders.quantity')}</th>
+                                <th>{t('orders.total')}</th>
+                                <th>{t('orders.status')}</th>
+                                <th>{t('orders.date')}</th>
                             </tr>
                         </thead>
                         <tbody>

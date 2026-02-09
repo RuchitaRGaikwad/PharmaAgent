@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     MessageSquare,
     Upload,
@@ -10,22 +11,25 @@ import {
     AlertTriangle,
     Settings,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Shield
 } from 'lucide-react';
 
 /**
  * Sidebar - Collapsible Navigation Panel
  */
-function Sidebar({ collapsed, onToggle }) {
+function Sidebar({ collapsed, onToggle, adminMode }) {
+    const { t } = useTranslation();
+
     const navItems = [
-        { path: '/', icon: MessageSquare, label: 'AI Pharmacist' },
-        { path: '/upload', icon: Upload, label: 'Upload Prescription' },
-        { path: '/medicines', icon: Pill, label: 'Medicines' },
-        { path: '/refills', icon: RefreshCw, label: 'Refills', badge: 2 },
-        { path: '/health', icon: Heart, label: 'Health Profile' },
-        { path: '/orders', icon: ShoppingCart, label: 'Orders' },
-        { path: '/alerts', icon: AlertTriangle, label: 'Safety Alerts' },
-        { path: '/settings', icon: Settings, label: 'Settings' },
+        { path: '/', icon: MessageSquare, label: t('nav.chat') },
+        { path: '/upload', icon: Upload, label: t('nav.upload') },
+        { path: '/medicines', icon: Pill, label: t('nav.medicines') },
+        { path: '/refills', icon: RefreshCw, label: t('nav.refills'), badge: 2 },
+        { path: '/health', icon: Heart, label: t('nav.profile') },
+        { path: '/orders', icon: ShoppingCart, label: t('nav.orders') },
+        { path: '/alerts', icon: AlertTriangle, label: t('nav.safety') },
+        { path: '/settings', icon: Settings, label: t('nav.settings') },
     ];
 
     return (
@@ -61,6 +65,24 @@ function Sidebar({ collapsed, onToggle }) {
                             </NavLink>
                         </li>
                     ))}
+
+                    {/* Admin Dashboard - Only visible in Admin Mode */}
+                    {adminMode && (
+                        <li className="nav-item">
+                            <NavLink
+                                to="/admin"
+                                className={({ isActive }) => `nav-link admin-nav ${isActive ? 'active' : ''}`}
+                                title={collapsed ? 'Admin Dashboard' : undefined}
+                            >
+                                <span className="nav-icon">
+                                    <Shield size={20} />
+                                </span>
+                                {!collapsed && (
+                                    <span className="nav-label">Admin Dashboard</span>
+                                )}
+                            </NavLink>
+                        </li>
+                    )}
                 </ul>
             </nav>
 
@@ -68,7 +90,7 @@ function Sidebar({ collapsed, onToggle }) {
             {!collapsed && (
                 <div className="sidebar-footer">
                     <div className="compliance-indicator">
-                        <span className="compliance-label">Compliance</span>
+                        <span className="compliance-label">{t('status.regulated')}</span>
                         <span className="compliance-value">98%</span>
                     </div>
                     <div className="compliance-bar">

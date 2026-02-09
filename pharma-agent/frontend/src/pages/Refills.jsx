@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshCw, Bell, Send, X } from 'lucide-react';
 import { getAlerts, updateAlertStatus, triggerRefillCheck } from '../services/api';
 
 function Refills() {
+    const { t } = useTranslation();
     const [alerts, setAlerts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -57,8 +59,8 @@ function Refills() {
     return (
         <div className="page-container">
             <div className="page-header">
-                <h1 className="page-title">🔄 Refills</h1>
-                <p className="page-subtitle">Proactive refill predictions and reminders</p>
+                <h1 className="page-title">🔄 {t('refills.title')}</h1>
+                <p className="page-subtitle">{t('refills.subtitle')}</p>
             </div>
 
             <div style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
@@ -68,7 +70,7 @@ function Refills() {
                     disabled={refreshing}
                 >
                     <RefreshCw size={18} className={refreshing ? 'spinning' : ''} />
-                    Run Refill Check
+                    {t('refills.run_check')}
                 </button>
             </div>
 
@@ -79,7 +81,7 @@ function Refills() {
             ) : (
                 <>
                     <h3 style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-                        Pending Reminders ({pendingAlerts.length})
+                        {t('refills.pending_reminders')} ({pendingAlerts.length})
                     </h3>
 
                     {pendingAlerts.length === 0 ? (
@@ -91,17 +93,17 @@ function Refills() {
                             marginBottom: '24px'
                         }}>
                             <Bell size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
-                            <p style={{ color: 'var(--text-muted)' }}>No pending refill reminders</p>
+                            <p style={{ color: 'var(--text-muted)' }}>{t('refills.no_pending')}</p>
                         </div>
                     ) : (
                         <div className="table-container" style={{ marginBottom: '24px' }}>
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Customer</th>
-                                        <th>Medicine</th>
-                                        <th>Refill Date</th>
-                                        <th>Actions</th>
+                                        <th>{t('refills.customer')}</th>
+                                        <th>{t('refills.medicine')}</th>
+                                        <th>{t('refills.refill_date')}</th>
+                                        <th>{t('refills.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -121,7 +123,7 @@ function Refills() {
                                                         style={{ padding: '6px 12px' }}
                                                         onClick={() => handleSendReminder(alert.id)}
                                                     >
-                                                        <Send size={14} /> Send
+                                                        <Send size={14} /> {t('common.send')}
                                                     </button>
                                                     <button
                                                         className="btn btn-secondary"
@@ -142,15 +144,15 @@ function Refills() {
                     {sentAlerts.length > 0 && (
                         <>
                             <h3 style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-                                Sent Reminders ({sentAlerts.length})
+                                {t('refills.sent_reminders')} ({sentAlerts.length})
                             </h3>
                             <div className="table-container">
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Customer</th>
-                                            <th>Medicine</th>
-                                            <th>Status</th>
+                                            <th>{t('refills.customer')}</th>
+                                            <th>{t('refills.medicine')}</th>
+                                            <th>{t('orders.status')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -158,7 +160,7 @@ function Refills() {
                                             <tr key={alert.id}>
                                                 <td>{alert.customer_name}</td>
                                                 <td>{alert.medicine_name}</td>
-                                                <td><span className="badge badge-success">Sent</span></td>
+                                                <td><span className="badge badge-success">{t('refills.sent')}</span></td>
                                             </tr>
                                         ))}
                                     </tbody>

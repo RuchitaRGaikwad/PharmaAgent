@@ -257,18 +257,48 @@ class ClinicalPharmaAgent:
         self.db = db
         self.memory = ConversationMemory()
         self.agent_name = "ClinicalPharmaAgent"
+        
+        # Initialize Ollama Client
+        from .llm_client import OllamaClient
+        self.llm_client = OllamaClient()
+        self.use_llm = False
+        
+        # Check if Ollama is available immediately
+        if self.llm_client.check_connection():
+            self.use_llm = True
+            print("✅ Ollama (Llama 3) connected successfully")
+        else:
+            print("⚠️ Ollama not detected - falling back to rule-based logic")
     
     def process(self, message: str, session_id: str = None, customer_id: int = None) -> Dict[str, Any]:
         """
         Process user message with clinical pharmacist intelligence.
-        
-        Returns structured JSON alongside natural language response.
+        Uses LLM (Llama 3) if available, otherwise falls back to heuristics.
         """
         if not session_id:
             session_id = str(uuid.uuid4())
         
         # Add message to memory
         self.memory.add_message(session_id, "user", message)
+        
+        # Check current state for overrides (e.g. waiting for confirmation)
+        state = self.memory.get_state(session_id)
+        if state == "awaiting_order_confirmation":
+            return self._handle_order_confirmation(message, session_id, "medicine_request")
+        
+        # Handle quantity response
+        if state == "awaiting_quantity":
+            return self._handle_quantity_response(message, session_id)
+        
+        # Try LLM processing first
+        if self.use_llm:
+            try:
+                return self._process_with_llm(message, session_id, customer_id)
+            except Exception as e:
+                print(f"LLM Processing failed: {e} - falling back to rules")
+                # Fallthrough to legacy logic
+        
+        # ==================== LEGACY RULE-BASED LOGIC (FALLBACK) ====================
         
         # Get current state and context
         state = self.memory.get_state(session_id)
@@ -295,7 +325,7 @@ class ClinicalPharmaAgent:
         # 6. Generate clinical response
         response = self._generate_clinical_response(
             message, entities, intent, state, 
-            patient_profile, safety_result, prescription_check
+            patient_profile, safety_result, prescription_check, session_id
         )
         
         # Update memory
@@ -466,7 +496,7 @@ Your safety is the priority. This is beyond pharmacy scope.
         # Age group detection
         if "baby" in message_lower or "infant" in message_lower or re.search(r'\b[0-2]\s*(months?|years?)\s*old', message_lower):
             entities.age_group = "infant"
-        elif "child" in message_lower or re.search(r'\b[3-12]\s*years?\s*old', message_lower):
+        elif "child" in message_lower or re.search(r'\b([3-9]|1[0-2])\s*years?\s*old', message_lower):
             entities.age_group = "child"
         elif re.search(r'\b(6[5-9]|[7-9]\d|\d{3})\s*years?\s*old', message_lower) or "elderly" in message_lower:
             entities.age_group = "elderly"
@@ -537,7 +567,8 @@ Your safety is the priority. This is beyond pharmacy scope.
     
     def _generate_clinical_response(
         self, message: str, entities: ExtractedEntities, intent: str, 
-        state: str, patient_profile: Dict, safety_result: Dict, prescription_check: Dict
+        state: str, patient_profile: Dict, safety_result: Dict, prescription_check: Dict,
+        session_id: str = None
     ) -> PharmaResponse:
         """Generate clinical pharmacist response."""
         
@@ -565,7 +596,6 @@ How can I help you today?""",
                 confidence=1.0
             )
         
-        # Handle help
         if intent == "help":
             return PharmaResponse(
                 intent="help",
@@ -591,6 +621,10 @@ How can I help you today?""",
 What would you like help with?""",
                 confidence=1.0
             )
+
+        # Handle pending confirmation
+        if state == "awaiting_order_confirmation":
+            return self._handle_order_confirmation(message, session_id, "medicine_request")
         
         # Handle prescription medicine request
         if prescription_check["required"]:
@@ -622,7 +656,7 @@ You can use the 📎 button to upload your prescription image.
         
         # Handle OTC medicine request
         if intent == "medicine_request" and entities.medicines:
-            return self._medicine_request_response(entities, safety_result, patient_profile)
+            return self._medicine_request_response(entities, safety_result, patient_profile, session_id)
         
         # Handle allergy information
         if intent == "allergy_info":
@@ -774,10 +808,10 @@ Would you like me to add any of these medicines to your order?"""
             alternatives=[r["name"] for r in recommendations]
         )
     
-    def _medicine_request_response(self, entities: ExtractedEntities, safety_result: Dict, patient_profile: Dict) -> PharmaResponse:
+    def _medicine_request_response(self, entities: ExtractedEntities, safety_result: Dict, patient_profile: Dict, session_id: str = None) -> PharmaResponse:
         """Handle direct medicine request."""
         medicines = entities.medicines
-        quantity = entities.quantity or "not specified"
+        quantity = entities.quantity
         
         if safety_result["blocked"]:
             return PharmaResponse(
@@ -800,15 +834,53 @@ Your safety is my priority. Would you like help with alternative options?""",
                 alternatives=safety_result["alternatives"]
             )
         
+        # Ask for quantity if not specified
+        if not quantity or quantity == "not specified":
+            if session_id:
+                self.memory.set_state(session_id, "awaiting_quantity")
+                self.memory.update_context(session_id, "pending_medicine", {
+                    "medicines": medicines,
+                    "timestamp": datetime.utcnow().isoformat()
+                })
+            
+            medicine_name = medicines[0] if medicines else "this medicine"
+            return PharmaResponse(
+                intent="quantity_needed",
+                extracted_entities=entities,
+                safety_status="pending",
+                actions=["await_quantity"],
+                user_message=f"""💊 I found **{medicine_name}** in our inventory!
+
+To proceed with your order, please let me know:
+- **How many** units/tablets do you need?
+- Any **specific dosage** requirements?
+
+For example: "20 tablets" or "2 strips of 10".""",
+                confidence=0.9,
+                warnings=safety_result.get("warnings", [])
+            )
+        
         warnings_section = ""
         if safety_result["warnings"]:
             warnings_section = f"\n**⚠️ Please Note:**\n" + "\n".join([f"• {w}" for w in safety_result["warnings"]])
         
+        # Save intent and entities for confirmation if session_id is available
+        if session_id:
+            self.memory.set_state(session_id, "awaiting_order_confirmation")
+            # Store pending order details in context
+            self.memory.update_context(session_id, "pending_order", {
+                "medicines": medicines,
+                "quantity": quantity,
+                "dosage": entities.dosage,
+                "frequency": entities.frequency,
+                "timestamp": datetime.utcnow().isoformat()
+            })
+        
         return PharmaResponse(
-            intent="medicine_request",
+            intent="medicine_request_proposal",
             extracted_entities=entities,
             safety_status="approved",
-            actions=["reserve_stock", "create_order"],
+            actions=["reserve_stock", "propose_order"],
             user_message=f"""✅ **Order Summary**
 
 **Medicine(s):** {', '.join(medicines)}
@@ -829,6 +901,212 @@ Please reply with your choice.""",
             warnings=safety_result["warnings"]
         )
     
+    def _process_with_llm(self, message: str, session_id: str, customer_id: int) -> Dict[str, Any]:
+        """Process using LLM client."""
+        from dataclasses import asdict
+        
+        # 1. Analyze intent and extract entities
+        analysis = self.llm_client.analyze_clinical_intent(message)
+        
+        if not analysis.success or not analysis.structured_data:
+            raise Exception("LLM analysis failed")
+            
+        data = analysis.structured_data
+        
+        # KEY FIX: Delegate medicine requests to rule-based engine
+        # The rule-based engine handles state ("awaiting_order_confirmation"), 
+        # safety checks, and structured responses much better than the raw LLM.
+        if data.get("intent") == "medicine_request":
+             raise Exception("Delegating medicine_request to rule-based engine for safety and state management")
+        
+        entities = ExtractedEntities(
+            symptoms=data.get("entities", {}).get("symptoms", []),
+            medicines=data.get("entities", {}).get("medicines", []),
+            duration=data.get("entities", {}).get("duration"),
+            severity=data.get("entities", {}).get("severity"),
+            age_group=data.get("entities", {}).get("age_group"),
+            conditions=data.get("entities", {}).get("conditions", []),
+            allergies=data.get("entities", {}).get("allergies", []),
+            raw_input=message
+        )
+        
+        # 3. Check safety internally (Hybrid approach: LLM + Rules)
+        patient_profile = self.memory.get_patient_profile(session_id)
+        safety_result = self._analyze_safety(entities, patient_profile)
+        
+        # Check prescription requirements (Rules are stricter/safer)
+        prescription_check = self._check_prescription_required(entities)
+        
+        # 4. Generate response
+        # We pass the combined context to the LLM generator
+        context = {
+            "intent": data.get("intent"),
+            "safety_warnings": safety_result["warnings"],
+            "is_blocked": safety_result["blocked"],
+            "requires_prescription": prescription_check["required"],
+            "entities": asdict(entities)
+        }
+        
+        natural_response = self.llm_client.generate_natural_response(context)
+        
+        # Update memory
+        self.memory.add_message(session_id, "assistant", natural_response)
+        
+        # 5. Return standard format
+        return {
+            "response": natural_response,
+            "session_id": session_id,
+            "structured_response": {
+                "intent": data.get("intent"),
+                "extracted_entities": asdict(entities),
+                "safety_status": "blocked" if safety_result["blocked"] else "approved",
+                "actions": [], # Actions would be determined by logic here
+                "user_message": natural_response
+            },
+            "confidence": data.get("confidence", 0.9),
+            "urgency": "normal",
+            "requires_prescription": prescription_check["required"],
+            "warnings": safety_result["warnings"],
+            "alternatives": safety_result["alternatives"],
+            "agent": f"{self.agent_name} (Llama3)"
+        }
+    
+    def _handle_quantity_response(self, message: str, session_id: str) -> Dict[str, Any]:
+        """
+        Handle quantity response when awaiting quantity.
+        Parses the quantity and transitions to order confirmation.
+        """
+        import re
+        
+        context = self.memory.get_context(session_id)
+        pending_medicine = context.get("pending_medicine")
+        
+        if not pending_medicine:
+            self.memory.set_state(session_id, "idle")
+            return {
+                "response": "I apologize, I lost track of which medicine you wanted. Please start again.",
+                "intent": "error",
+                "requires_action": None,
+                "confidence": 1.0
+            }
+        
+        # Extract quantity from message
+        quantity_match = re.search(r'(\d+)', message)
+        if quantity_match:
+            quantity = int(quantity_match.group(1))
+        else:
+            # If no number found, ask again
+            return {
+                "response": "I couldn't understand the quantity. Please specify a number, for example: **20 tablets** or **2 strips**.",
+                "intent": "quantity_needed",
+                "requires_action": None,
+                "confidence": 0.7
+            }
+        
+        medicines = pending_medicine.get("medicines", [])
+        medicine_name = medicines[0] if medicines else "Unknown medicine"
+        
+        # Set up pending order and transition to confirmation state
+        self.memory.set_state(session_id, "awaiting_order_confirmation")
+        self.memory.update_context(session_id, "pending_order", {
+            "medicines": medicines,
+            "quantity": quantity,
+            "dosage": None,
+            "frequency": None,
+            "timestamp": datetime.utcnow().isoformat()
+        })
+        
+        return {
+            "response": f"""✅ **Order Summary**
+
+**Medicine:** {medicine_name}
+**Quantity:** {quantity} units
+
+**Safety Status:** ✓ Cleared
+
+Would you like to:
+1. ✅ **Confirm** this order
+2. 📝 **Modify** quantity or add more items  
+3. ❌ **Cancel**
+
+Please reply with your choice.""",
+            "intent": "medicine_request_proposal",
+            "requires_action": None,
+            "confidence": 0.9
+        }
+    
+    def _handle_order_confirmation(self, message: str, session_id: str, original_intent: str) -> Dict[str, Any]:
+        """
+        Handle confirmation response.
+        Returns a dict (not PharmaResponse) so orchestrator can properly route to ActionAgent.
+        """
+        message_lower = message.lower()
+        context = self.memory.get_context(session_id)
+        pending_order = context.get("pending_order")
+        
+        if not pending_order:
+            # Error state - lost context
+            self.memory.set_state(session_id, "idle")
+            return {
+                "response": "I apologize, but I lost the details of your order. Please request the medicine again.",
+                "intent": "error",
+                "requires_action": None,
+                "confidence": 1.0
+            }
+
+        # Check for confirmation
+        confirm_keywords = ["1", "one", "confirm", "yes", "sure", "ok", "proceed", "place order", "done", "correct", "right"]
+        cancel_keywords = ["2", "3", "two", "three", "modify", "change", "cancel", "no", "stop"]
+        
+        if any(w in message_lower for w in confirm_keywords) and not any(w in message_lower for w in cancel_keywords):
+            # Order Confirmed - Signal orchestrator to process through ActionAgent
+            medicine_name = pending_order["medicines"][0] if pending_order.get("medicines") else None
+            quantity = pending_order.get("quantity")
+            
+            # Parse quantity if it's a string like "20 tablets"
+            if isinstance(quantity, str):
+                import re
+                qty_match = re.search(r'(\d+)', str(quantity))
+                quantity = int(qty_match.group(1)) if qty_match else 1
+            elif quantity is None or quantity == "not specified":
+                quantity = 1
+            
+            # Store the confirmed order details for the orchestrator
+            self.memory.update_context(session_id, "medicine_name", medicine_name)
+            self.memory.update_context(session_id, "quantity", quantity)
+            
+            # Return dict to signal order processing
+            return {
+                "response": "Processing your order...",
+                "intent": "order_confirmed",
+                "requires_action": "process_order",
+                "extracted_order": {
+                    "medicine_name": medicine_name,
+                    "quantity": quantity
+                },
+                "session_id": session_id,
+                "confidence": 1.0
+            }
+            
+        elif any(w in message_lower for w in cancel_keywords):
+            # Order Cancelled
+            self.memory.set_state(session_id, "idle")
+            return {
+                "response": "Order cancelled. Let me know if you need anything else.",
+                "intent": "order_cancelled",
+                "requires_action": None,
+                "confidence": 1.0
+            }
+            
+        else:
+            # Unclear response - ask for clarification
+            return {
+                "response": "I'm not sure I understood. Please reply with **1** or **yes** to confirm your order, or **2** or **cancel** to cancel.",
+                "intent": "clarification",
+                "requires_action": None,
+                "confidence": 0.8
+            }
+            
     def get_session_summary(self, session_id: str) -> Dict:
         """Get summary of a conversation session."""
         session = self.memory.get_session(session_id)

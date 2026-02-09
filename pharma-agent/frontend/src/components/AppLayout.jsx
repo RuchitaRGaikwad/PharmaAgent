@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import SafetyPanel from './SafetyPanel';
 import Header from './Header';
@@ -11,13 +11,16 @@ import Header from './Header';
  * - Fixed Header (top bar with status)
  * - Collapsible Left Sidebar (navigation)
  * - Center Workspace (PRIMARY - full height/width)
- * - Collapsible Right Safety Panel
+ * - Collapsible Right Safety Panel (hidden on Settings page)
  */
 function AppLayout() {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [safetyPanelOpen, setSafetyPanelOpen] = useState(true);
     const [adminMode, setAdminMode] = useState(false);
-    const [elderlyMode, setElderlyMode] = useState(false);
+    const location = useLocation();
+
+    // Check if current page is settings (which has its own status panel)
+    const isSettingsPage = location.pathname === '/settings';
 
     // Auto-collapse panels on mobile/tablet
     useEffect(() => {
@@ -35,15 +38,16 @@ function AppLayout() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Hide safety panel on settings page
+    const showSafetyPanel = safetyPanelOpen && !isSettingsPage;
+
     return (
         <div className="app-shell">
             {/* Fixed Header */}
             <Header
                 adminMode={adminMode}
                 setAdminMode={setAdminMode}
-                elderlyMode={elderlyMode}
-                setElderlyMode={setElderlyMode}
-                safetyPanelOpen={safetyPanelOpen}
+                safetyPanelOpen={showSafetyPanel}
                 setSafetyPanelOpen={setSafetyPanelOpen}
             />
 
@@ -53,18 +57,21 @@ function AppLayout() {
                 <Sidebar
                     collapsed={sidebarCollapsed}
                     onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+                    adminMode={adminMode}
                 />
 
                 {/* Center Workspace - PRIMARY */}
-                <main className={`workspace ${sidebarCollapsed ? 'sidebar-collapsed' : ''} ${safetyPanelOpen ? '' : 'panel-closed'}`}>
+                <main className={`workspace ${sidebarCollapsed ? 'sidebar-collapsed' : ''} ${showSafetyPanel ? '' : 'panel-closed'}`}>
                     <Outlet />
                 </main>
 
-                {/* Right Safety Panel */}
-                <SafetyPanel
-                    isOpen={safetyPanelOpen}
-                    onClose={() => setSafetyPanelOpen(false)}
-                />
+                {/* Right Safety Panel - Hidden on Settings page */}
+                {!isSettingsPage && (
+                    <SafetyPanel
+                        isOpen={safetyPanelOpen}
+                        onClose={() => setSafetyPanelOpen(false)}
+                    />
+                )}
             </div>
         </div>
     );

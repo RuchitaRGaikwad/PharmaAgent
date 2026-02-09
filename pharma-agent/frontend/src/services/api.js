@@ -127,6 +127,13 @@ export async function getCustomers() {
 }
 
 /**
+ * Get a single customer by ID
+ */
+export async function getCustomer(id) {
+    return fetchAPI(`/customers/${id}`);
+}
+
+/**
  * Get customer order history
  */
 export async function getCustomerHistory(customerId) {
@@ -233,6 +240,62 @@ export async function healthCheck() {
     return fetchAPI('/health');
 }
 
+// ==================== Cart API ====================
+
+/**
+ * Get user's cart
+ */
+export async function getCart(userId = 1) {
+    return fetchAPI(`/cart/${userId}`);
+}
+
+/**
+ * Add item to cart
+ */
+export async function addToCart(userId = 1, medicineId, quantity = 1) {
+    return fetchAPI(`/cart/${userId}/add`, {
+        method: 'POST',
+        body: JSON.stringify({ medicine_id: medicineId, quantity }),
+    });
+}
+
+/**
+ * Remove item from cart
+ */
+export async function removeFromCart(userId = 1, itemId) {
+    return fetchAPI(`/cart/${userId}/remove/${itemId}`, {
+        method: 'DELETE',
+    });
+}
+
+/**
+ * Update cart item quantity
+ */
+export async function updateCartItem(userId = 1, itemId, quantity) {
+    return fetchAPI(`/cart/${userId}/update/${itemId}?quantity=${quantity}`, {
+        method: 'PATCH',
+    });
+}
+
+/**
+ * Checkout cart
+ */
+export async function checkout(userId = 1, customerId = 1) {
+    return fetchAPI(`/cart/${userId}/checkout`, {
+        method: 'POST',
+        body: JSON.stringify({ customer_id: customerId }),
+    });
+}
+
+/**
+ * Clear cart
+ */
+export async function clearCart(userId = 1) {
+    return fetchAPI(`/cart/${userId}/clear`, {
+        method: 'DELETE',
+    });
+}
+
 export default {
     sendMessage,
     getMedicines,
@@ -244,6 +307,7 @@ export default {
     createOrder,
     updateOrderStatus,
     getCustomers,
+    getCustomer,
     getCustomerHistory,
     uploadPrescription,
     getAlerts,
@@ -254,4 +318,11 @@ export default {
     getWebhookLogs,
     triggerRefillCheck,
     healthCheck,
+    // Cart API
+    getCart,
+    addToCart,
+    removeFromCart,
+    updateCartItem,
+    checkout,
+    clearCart,
 };

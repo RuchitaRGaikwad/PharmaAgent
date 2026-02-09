@@ -147,6 +147,13 @@ class SafetyAgent:
             prescription_verified=True if requires_prescription else False,
             stock_available=medicine.stock_level
         )
+
+    def check_safety_warnings(self, medicine) -> list:
+        """Check for specific safety warnings for a medicine."""
+        warnings = []
+        if medicine.safety_notes:
+            warnings.append(f"{medicine.name}: {medicine.safety_notes}")
+        return warnings
     
     def _find_medicine(self, medicine_name: str):
         """Find medicine by name (fuzzy matching)."""
