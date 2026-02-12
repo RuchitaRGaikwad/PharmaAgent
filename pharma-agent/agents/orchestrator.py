@@ -85,6 +85,32 @@ class AgentOrchestrator:
         # If 1+ symptom keywords found, treat as symptom request
         return symptom_count >= 1
     
+    def _get_user_settings(self, user_id: int) -> Dict[str, Any]:
+        """Fetch user settings or return defaults."""
+        from backend.app.models import UserSettings
+        
+        # Default settings
+        defaults = {
+            "language": "en",
+            "admin_mode": False,
+            "voice_assistant": True,
+            "auto_refill": True
+        }
+        
+        try:
+            settings = self.db.query(UserSettings).filter(UserSettings.user_id == user_id).first()
+            if settings:
+                return {
+                    "language": settings.language,
+                    "admin_mode": settings.admin_mode,
+                    "voice_assistant": settings.voice_assistant,
+                    "auto_refill": settings.auto_refill
+                }
+        except Exception as e:
+            print(f"Error fetching settings for user {user_id}: {e}")
+            
+        return defaults
+
     async def process_message(
         self,
         message: str,
@@ -99,10 +125,18 @@ class AgentOrchestrator:
         """
         if not session_id:
             session_id = str(uuid.uuid4())
+            
+        # Context: Get User Settings (default to user 1 for demo)
+        safe_customer_id = customer_id or 1
+        user_settings = self._get_user_settings(safe_customer_id)
         
         # Step 0a: Multilingual Support - Normalize Input
         # Detect language and translate to English for internal processing
         normalized_message, detected_lang, is_translated = self.language_agent.normalize_input(message, session_id)
+        
+        # Override detected language with user setting if explicit preference set (optional logic)
+        # For now, we trust detection for input, but force output language based on settings
+        target_lang = user_settings["language"]
         
         # Start trace
         trace_id = observability.start_trace(
@@ -111,7 +145,9 @@ class AgentOrchestrator:
             user_id=str(customer_id) if customer_id else None,
             metadata={
                 "message_length": len(message),
-                "detected_language": detected_lang
+                "detected_language": detected_lang,
+                "target_language": target_lang,
+                "admin_mode": user_settings["admin_mode"]
             }
         )
         
@@ -140,6 +176,7 @@ class AgentOrchestrator:
         
         try:
             # Step 0b: Check if this is a symptom-based request using processed message
+            # Only if voice assistant (interactive mode) is enabled or if it's text
             if self._is_symptom_request(processing_message):
                 symptom_span = observability.start_span(
                     trace_id=trace_id,
@@ -176,9 +213,9 @@ class AgentOrchestrator:
                         }
                     )
                 
-                # Localize response back to user language
+                # Localize response back to user language (use setting preference)
                 response_text = symptom_result.get("response", "")
-                localized_response = self.language_agent.localize_response(response_text, detected_lang, session_id)
+                localized_response = self.language_agent.localize_response(response_text, target_lang, session_id)
                 
                 result["response"] = localized_response
                 result["symptoms"] = symptom_result.get("symptoms", [])
@@ -211,9 +248,14 @@ class AgentOrchestrator:
                 }
             )
             
-            # Localize response
+            # Localize response (use setting preference)
             response_text = conv_result.get("response", "")
-            localized_response = self.language_agent.localize_response(response_text, detected_lang, session_id)
+            localized_response = self.language_agent.localize_response(response_text, target_lang, session_id)
+            
+            # Append Admin Debug Info if enabled
+            if user_settings["admin_mode"]:
+                debug_info = f"\n\n🛠️ **Admin Debug:**\n- Intent: {conv_result.get('intent')}\n- Confidence: {conv_result.get('confidence')}\n- Trace ID: `{trace_id}`"
+                localized_response += debug_info
             
             result["response"] = localized_response
             result["requires_action"] = conv_result.get("requires_action")
@@ -247,6 +289,13 @@ class AgentOrchestrator:
                             customer_id=customer_id or 1,  # Default customer for demo
                             session_id=session_id
                         )
+                        # Re-localize response if it came from validation (Order confirmed message)
+                        if result.get("response"):
+                            # Only localize if it's the raw english response, but validate_and_execute returns formatted MD
+                            # We might want to handle localization inside validate_and_execute too, but for now apply it here if needed
+                            # Skipping strictly for complex order strings to avoid breaking format, or trust language agent
+                            pass
+                            
                         result["trace_id"] = trace_id
                         result["session_id"] = session_id
             
@@ -259,7 +308,9 @@ class AgentOrchestrator:
                 extracted = conv_result.get("extracted_order", {})
                 if extracted and extracted.get("medicine_name"):
                     stock_info = self.safety_agent.check_stock(extracted["medicine_name"])
-                    result["response"] = stock_info.get("message", result["response"])
+                    # Localize stock message
+                    stock_msg = self.language_agent.localize_response(stock_info.get("message", ""), target_lang, session_id)
+                    result["response"] = stock_msg
         
         except Exception as e:
             observability.log_decision(

@@ -208,3 +208,24 @@ class CartItem(Base):
     # Relationships
     cart = relationship("Cart", back_populates="items")
     medicine = relationship("Medicine")
+
+
+class StockNotification(Base):
+    """
+    Stock level notifications for admin alerts.
+    Triggered when medicine stock falls below threshold.
+    """
+    __tablename__ = "stock_notifications"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    medicine_id = Column(Integer, ForeignKey("medicines.id"), nullable=False)
+    medicine_name = Column(String(200), nullable=False)
+    stock_level = Column(Integer, nullable=False)
+    threshold = Column(Integer, default=20)
+    notification_type = Column(String(50), default="low_stock")  # low_stock, out_of_stock
+    is_read = Column(Boolean, default=False)
+    is_acknowledged = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    medicine = relationship("Medicine")

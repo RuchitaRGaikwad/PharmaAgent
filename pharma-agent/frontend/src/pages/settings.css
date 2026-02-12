@@ -1,160 +1,225 @@
-/* Settings Page - Theme-Aware Styles */
+/* Settings Page - Premium Polish & Full-Screen Layout Fix */
 
-/* Page Layout */
+/* =====================================================
+   ROOT ISSUE FIX:
+   The parent chain (html > body > #root > .app-container > .workspace)
+   all have overflow: hidden, which clips the Settings content.
+   
+   SOLUTION:
+   1. Make settings-page fill entire viewport
+   2. Use proper flex layout with min-height: 0 for flex children
+   3. Enable overflow-y: auto on the scrollable container
+   4. Remove fixed height calculations that cause clipping
+   ===================================================== */
+
+/* 1. Full-Screen Layout Container */
 .settings-page {
     display: flex;
-    gap: 24px;
-    padding: 24px;
+    gap: 32px;
+    padding: 32px;
+    width: 100%;
     height: 100%;
+    min-height: 0;
+    /* Critical for flex child scrolling */
+    max-width: 1400px;
+    margin: 0 auto;
     background: var(--bg-primary);
-    overflow: hidden;
+    animation: fadeIn 0.4s ease-out;
 }
 
+/* 2. Main Content Area - Scrollable */
 .settings-main {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    max-width: 720px;
+    gap: 24px;
+    min-width: 0;
     min-height: 0;
-    /* Critical for flexbox child scrolling */
-    overflow-y: auto;
-    padding-right: 8px;
-    padding-bottom: 40px;
+    max-height: calc(100vh - 160px);
+    /* Force max height constraint */
+    overflow-y: scroll !important;
+    /* Force scroll always */
+    overflow-x: hidden;
+    padding-right: 12px;
+    padding-bottom: 100px;
+    /* Extra space at bottom for last card */
+    scroll-behavior: smooth;
 }
 
+/* Custom Scrollbar - Dark Theme */
+.settings-main::-webkit-scrollbar {
+    width: 8px;
+}
+
+.settings-main::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+}
+
+.settings-main::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.settings-main::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Firefox scrollbar */
+.settings-main {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+/* 3. Sidebar - Fixed Width, Non-Scrolling */
 .settings-sidebar {
-    width: 320px;
+    width: 360px;
+    flex-shrink: 0;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    overflow-y: auto;
-    max-height: 100%;
 }
 
-/* Page Header */
-.settings-header {
-    margin-bottom: 8px;
+/* Sticky System Status Panel */
+.settings-sidebar .status-panel {
+    position: sticky;
+    top: 0;
+    max-height: fit-content;
 }
 
-.settings-header h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 8px 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+/* =====================================================
+   SETTINGS CARDS - Premium Polish
+   ===================================================== */
 
-.settings-header p {
-    color: var(--text-muted);
-    font-size: 14px;
-    margin: 0;
-}
-
-/* Settings Cards */
 .settings-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .settings-card:hover {
-    border-color: var(--border-hover);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow:
+        0 10px 25px -5px rgba(0, 0, 0, 0.15),
+        0 8px 10px -6px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(99, 102, 241, 0.1);
 }
 
+/* Card Header - Clickable Accordion */
 .settings-card-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
+    align-items: center;
+    padding: 20px 24px;
     cursor: pointer;
-    transition: background 0.2s;
+    background: rgba(255, 255, 255, 0.01);
+    user-select: none;
+    transition: background 0.2s ease;
 }
 
 .settings-card-header:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .settings-card-header-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
 }
 
+/* Card Icons with Gradient Backgrounds */
 .settings-card-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.settings-card-header:hover .settings-card-icon {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Icon Gradient Variants */
 .settings-card-icon.notifications {
-    background: rgba(99, 102, 241, 0.15);
-    color: #818cf8;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
 .settings-card-icon.appearance {
-    background: rgba(34, 211, 238, 0.15);
-    color: #22d3ee;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
 .settings-card-icon.features {
-    background: rgba(250, 204, 21, 0.15);
-    color: #facc15;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
 }
 
 .settings-card-icon.privacy {
-    background: rgba(244, 63, 94, 0.15);
-    color: #fb7185;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
+/* Card Title */
 .settings-card-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
-    color: var(--text-primary);
     margin: 0;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
 }
 
+/* Chevron Animation */
 .settings-card-chevron {
     color: var(--text-muted);
-    transition: transform 0.3s ease;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .settings-card-chevron.open {
     transform: rotate(180deg);
 }
 
-/* Card Content */
+/* Card Content - Smooth Accordion */
 .settings-card-content {
     max-height: 0;
+    opacity: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease;
+    transition:
+        max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.3s ease;
 }
 
 .settings-card-content.open {
-    max-height: 2000px;
-    /* Increased to avoid clipping */
+    max-height: 1500px;
+    /* Generous max for full content visibility */
+    opacity: 1;
 }
 
 .settings-card-body {
-    padding: 0 20px 20px;
+    padding: 0 24px 24px 24px;
     border-top: 1px solid var(--border-color);
 }
 
-/* Setting Row */
+/* =====================================================
+   SETTING ITEMS - Individual Controls
+   ===================================================== */
+
 .setting-item {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background 0.2s ease;
 }
 
 .setting-item:last-child {
@@ -164,111 +229,161 @@
 
 .setting-info {
     flex: 1;
+    padding-right: 24px;
 }
 
 .setting-label {
-    font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    font-size: 15px;
 }
 
 .setting-description {
-    font-size: 12px;
-    color: var(--text-muted);
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
 }
 
-/* Toggle Switch */
+/* =====================================================
+   TOGGLE SWITCH - Premium UX
+   ===================================================== */
+
 .toggle-switch {
-    position: relative;
     width: 52px;
-    height: 28px;
-    min-width: 52px;
+    height: 30px;
     background: var(--bg-tertiary);
-    border-radius: 14px;
+    border-radius: 100px;
+    position: relative;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: none;
-    padding: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
     flex-shrink: 0;
-    overflow: hidden;
 }
 
-/* Fix toggle knob conflict: already handled in index.css, just kept here for safety if needed */
-.toggle-switch:has(.toggle-knob)::after {
-    display: none !important;
+.toggle-switch:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .toggle-switch.active {
     background: #22c55e;
-    box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0.4);
 }
 
-.toggle-switch.loading {
-    opacity: 0.6;
-    cursor: wait;
-}
-
-.toggle-knob {
+.toggle-switch .toggle-slider {
     position: absolute;
-    top: 4px;
-    left: 4px;
-    width: 20px;
-    height: 20px;
-    background: #fff;
+    width: 22px;
+    height: 22px;
+    background: white;
     border-radius: 50%;
-    transition: transform 0.3s ease;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-switch.active .toggle-knob {
-    transform: translateX(24px);
-    background: #fff;
+.toggle-switch.active .toggle-slider {
+    transform: translateX(22px);
 }
 
-/* Select Dropdown */
+/* =====================================================
+   SELECT DROPDOWN - Settings 
+   ===================================================== */
+
 .settings-select {
-    background: var(--bg-primary);
+    padding: 10px 40px 10px 14px;
+    background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px 14px;
+    border-radius: 10px;
     color: var(--text-primary);
     font-size: 14px;
     cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
     min-width: 140px;
-    transition: border-color 0.2s;
 }
 
 .settings-select:hover {
-    border-color: var(--border-hover);
+    border-color: var(--primary);
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .settings-select:focus {
     outline: none;
-    border-color: var(--secondary);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
-/* System Status Panel */
+/* =====================================================
+   SYSTEM STATUS PANEL
+   ===================================================== */
+
 .status-panel {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.status-panel-header {
+.status-panel-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.status-item:last-child {
+    border-bottom: none;
+}
+
+.status-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.status-value {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .status-indicator {
     width: 8px;
     height: 8px;
-    background: #22c55e;
     border-radius: 50%;
-    animation: pulse 2s infinite;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.status-indicator.online {
+    background: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+.status-indicator.warning {
+    background: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+}
+
+.status-indicator.error {
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
 }
 
 @keyframes pulse {
@@ -279,195 +394,49 @@
     }
 
     50% {
-        opacity: 0.5;
+        opacity: 0.6;
     }
 }
 
-.status-panel-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 0;
-}
+/* =====================================================
+   LOADING & TOAST STATES
+   ===================================================== */
 
-/* Status Items */
-.status-list {
+.settings-loading {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.status-item {
-    display: flex;
     align-items: center;
-    justify-content: space-between;
-}
-
-.status-item-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-}
-
-.status-dot.online {
-    background: #22c55e;
-}
-
-.status-dot.offline {
-    background: #ef4444;
-}
-
-.status-dot.warning {
-    background: #f59e0b;
-}
-
-.status-item-label {
-    font-size: 14px;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
     color: var(--text-secondary);
 }
 
-.status-item-value {
-    font-size: 12px;
-    font-weight: 600;
-    color: #22c55e;
-    text-transform: uppercase;
-}
-
-.status-item-value.warning {
-    color: #f59e0b;
-}
-
-.status-item-value.danger {
-    color: #ef4444;
-}
-
-/* Metric Cards */
-.metric-section {
-    margin-bottom: 20px;
-}
-
-.metric-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.metric-label::before,
-.metric-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border-color);
-}
-
-.metric-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-}
-
-.metric-value {
-    font-size: 36px;
-    font-weight: 700;
-    color: #22c55e;
-    margin-bottom: 4px;
-}
-
-.metric-value.high {
-    color: #22c55e;
-}
-
-.metric-value.medium {
-    color: #f59e0b;
-}
-
-.metric-value.low {
-    color: #ef4444;
-}
-
-.metric-subtitle {
-    font-size: 11px;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Recent Checks */
-.recent-checks {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.check-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    background: #0f172a;
-    border-radius: 8px;
-    font-size: 13px;
-    color: #94a3b8;
-}
-
-.check-icon {
-    font-size: 14px;
-}
-
-.check-icon.success {
-    color: #22c55e;
-}
-
-.check-icon.warning {
-    color: #f59e0b;
-}
-
-/* Toast Notification */
 .settings-toast {
     position: fixed;
     bottom: 24px;
     right: 24px;
-    padding: 12px 20px;
-    border-radius: 8px;
+    padding: 14px 20px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    animation: slideIn 0.3s ease;
+    gap: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease-out;
     z-index: 1000;
 }
 
 .settings-toast.success {
-    background: rgba(34, 197, 94, 0.15);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    color: #22c55e;
+    border-left: 4px solid #22c55e;
 }
 
 .settings-toast.error {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #ef4444;
+    border-left: 4px solid #ef4444;
 }
 
-@keyframes slideIn {
+@keyframes slideUp {
     from {
         transform: translateY(20px);
         opacity: 0;
@@ -479,44 +448,52 @@
     }
 }
 
-/* Loading State */
-.settings-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
-    color: #64748b;
-}
-
-.settings-loading svg {
-    animation: spin 1s linear infinite;
-    color: #6366f1;
-}
-
-@keyframes spin {
+@keyframes fadeIn {
     from {
-        transform: rotate(0deg);
+        opacity: 0;
     }
 
     to {
-        transform: rotate(360deg);
+        opacity: 1;
     }
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
+/* =====================================================
+   RESPONSIVE DESIGN
+   ===================================================== */
+
+@media (max-width: 1200px) {
+    .settings-page {
+        padding: 24px;
+        gap: 24px;
+    }
+
+    .settings-sidebar {
+        width: 320px;
+    }
+}
+
+@media (max-width: 992px) {
     .settings-page {
         flex-direction: column;
+        height: auto;
+        min-height: 100%;
+        overflow-y: auto;
+    }
+
+    .settings-main {
+        overflow-y: visible;
+        padding-bottom: 24px;
     }
 
     .settings-sidebar {
         width: 100%;
         order: -1;
+        /* Move status panel to top on mobile */
     }
 
-    .settings-main {
-        max-width: 100%;
+    .settings-sidebar .status-panel {
+        position: static;
     }
 }
 
@@ -526,102 +503,51 @@
     }
 
     .settings-card-header {
-        padding: 14px 16px;
+        padding: 16px;
     }
 
     .settings-card-body {
-        padding: 0 16px 16px;
+        padding: 0 16px 16px 16px;
     }
 
-    .setting-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
+    .settings-card-icon {
+        width: 36px;
+        height: 36px;
     }
 
-    .toggle-switch,
-    .settings-select {
-        align-self: flex-end;
+    .settings-card-title {
+        font-size: 16px;
     }
 }
 
-/* ============ Light Mode Overrides ============ */
+/* =====================================================
+   LIGHT THEME OVERRIDES
+   ===================================================== */
+
 [data-theme="light"] .settings-card {
-    background: #ffffff;
-    border-color: #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.08),
+        0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 [data-theme="light"] .settings-card:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    box-shadow:
+        0 10px 25px -5px rgba(0, 0, 0, 0.1),
+        0 8px 10px -6px rgba(0, 0, 0, 0.08);
 }
 
-[data-theme="light"] .settings-card-header:hover {
-    background: #f8fafc;
+[data-theme="light"] .setting-item {
+    border-bottom-color: rgba(0, 0, 0, 0.06);
 }
 
-/* Premium Icon Styles for Light Mode */
-[data-theme="light"] .settings-card-icon.notifications {
-    background: #eff6ff;
-    color: #3b82f6;
+[data-theme="light"] .status-item {
+    border-bottom-color: rgba(0, 0, 0, 0.06);
 }
 
-[data-theme="light"] .settings-card-icon.appearance {
-    background: #ecfeff;
-    color: #06b6d4;
+[data-theme="light"] .settings-main::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
 }
 
-[data-theme="light"] .settings-card-icon.features {
-    background: #fefce8;
-    color: #eab308;
-}
-
-[data-theme="light"] .settings-card-icon.privacy {
-    background: #fff1f2;
-    color: #f43f5e;
-}
-
-/* Toggle Switch in Light Mode */
-[data-theme="light"] .toggle-switch {
-    background: #e2e8f0;
-}
-
-[data-theme="light"] .toggle-switch.active {
-    background: #10b981;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
-}
-
-/* Status Panel & Metrics */
-[data-theme="light"] .status-panel {
-    background: #ffffff;
-    border-color: #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="light"] .metric-label::before,
-[data-theme="light"] .metric-label::after {
-    background: #e2e8f0;
-}
-
-[data-theme="light"] .metric-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-color: #e2e8f0;
-}
-
-/* Recent Checks */
-[data-theme="light"] .check-item {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    color: #475569;
-}
-
-[data-theme="light"] .settings-select {
-    background: #ffffff;
-    border-color: #e2e8f0;
-    color: #0f172a;
-}
-
-[data-theme="light"] .settings-select:hover {
-    border-color: #cbd5e1;
+[data-theme="light"] .settings-main::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.25);
 }

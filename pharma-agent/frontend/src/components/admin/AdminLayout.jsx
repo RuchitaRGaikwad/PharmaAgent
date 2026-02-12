@@ -20,6 +20,7 @@ import AlertsPanel from './AlertsPanel';
 import OrdersPanel from './OrdersPanel';
 import TracesPanel from './TracesPanel';
 import DashboardPanel from './DashboardPanel';
+import NotificationBell from './NotificationBell';
 
 function AdminLayout() {
     const [activePanel, setActivePanel] = useState('dashboard');
@@ -131,6 +132,7 @@ function AdminLayout() {
                         </h1>
                     </div>
                     <div className="admin-header-right">
+                        <NotificationBell />
                         <div className="admin-header-user">
                             <div className="admin-avatar small">
                                 <User size={14} />

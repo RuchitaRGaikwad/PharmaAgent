@@ -471,17 +471,77 @@ def retry_webhook(order_id: int, db: Session = Depends(get_db)):
 
 
 # =============================================================================
-# AGENT TRACES ENDPOINTS
+# AGENT TRACES ENDPOINTS (DB-BACKED AUDIT LOG)
 # =============================================================================
 
+from ..models import AgentTrace as AgentTraceModel
+
 @router.get("/traces")
-def get_traces():
-    """Get agent traces and observability data."""
-    admin_logger.info("Admin accessed traces")
+def get_traces(
+    agent_name: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db)
+):
+    """Get agent traces from database with filtering and pagination."""
+    admin_logger.info(f"Admin accessed traces (agent={agent_name}, limit={limit})")
     
-    # Return stored traces + observability links
+    query = db.query(AgentTraceModel)
+    
+    # Apply filters
+    if agent_name:
+        query = query.filter(AgentTraceModel.agent_name == agent_name)
+    
+    if date_from:
+        try:
+            from_date = datetime.fromisoformat(date_from)
+            query = query.filter(AgentTraceModel.created_at >= from_date)
+        except ValueError:
+            pass
+    
+    if date_to:
+        try:
+            to_date = datetime.fromisoformat(date_to)
+            query = query.filter(AgentTraceModel.created_at <= to_date)
+        except ValueError:
+            pass
+    
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (AgentTraceModel.input_data.ilike(search_term)) |
+            (AgentTraceModel.output_data.ilike(search_term)) |
+            (AgentTraceModel.decision.ilike(search_term))
+        )
+    
+    # Get total count before pagination
+    total_count = query.count()
+    
+    # Order and paginate
+    traces = query.order_by(desc(AgentTraceModel.created_at)).offset(offset).limit(limit).all()
+    
     return {
-        "agent_traces": AGENT_TRACES[-50:],  # Last 50 traces
+        "total": total_count,
+        "limit": limit,
+        "offset": offset,
+        "agent_traces": [
+            {
+                "id": trace.trace_id,
+                "agent_name": trace.agent_name,
+                "action": trace.action,
+                "input": trace.input_data,
+                "output": trace.output_data,
+                "decision": trace.decision,
+                "reason": trace.reason,
+                "duration_ms": trace.duration_ms,
+                "session_id": trace.session_id,
+                "timestamp": trace.created_at.isoformat() if trace.created_at else None
+            }
+            for trace in traces
+        ],
         "observability_links": [
             {
                 "id": "link-001",
@@ -515,24 +575,66 @@ def get_traces():
     }
 
 
-@router.post("/traces")
-def add_trace(trace: AgentTrace):
-    """Add a new agent trace (called by agents)."""
-    trace_entry = {
-        "id": f"trace-{len(AGENT_TRACES) + 1:04d}",
-        "agent_name": trace.agent_name,
-        "input": trace.input_text,
-        "output": trace.output_text,
-        "decision": trace.decision,
-        "confidence": trace.confidence,
-        "duration_ms": trace.duration_ms,
-        "timestamp": datetime.utcnow().isoformat()
+@router.get("/traces/stats")
+def get_traces_stats(db: Session = Depends(get_db)):
+    """Get agent trace statistics for dashboard."""
+    admin_logger.info("Admin accessed traces stats")
+    
+    # Count by agent
+    agent_counts = db.query(
+        AgentTraceModel.agent_name,
+        func.count(AgentTraceModel.id).label('count')
+    ).group_by(AgentTraceModel.agent_name).all()
+    
+    # Average duration
+    avg_duration = db.query(func.avg(AgentTraceModel.duration_ms)).scalar() or 0
+    
+    # Total traces
+    total = db.query(AgentTraceModel).count()
+    
+    # Recent activity (last 24h)
+    yesterday = datetime.utcnow() - timedelta(hours=24)
+    recent_count = db.query(AgentTraceModel).filter(
+        AgentTraceModel.created_at >= yesterday
+    ).count()
+    
+    return {
+        "total_traces": total,
+        "recent_24h": recent_count,
+        "avg_duration_ms": round(avg_duration, 2),
+        "by_agent": {agent: count for agent, count in agent_counts}
     }
+
+
+@router.get("/traces/agents")
+def get_trace_agents(db: Session = Depends(get_db)):
+    """Get list of unique agent names for filtering."""
+    agents = db.query(AgentTraceModel.agent_name).distinct().all()
+    return {"agents": [a[0] for a in agents if a[0]]}
+
+
+@router.post("/traces")
+def add_trace(trace: AgentTrace, db: Session = Depends(get_db)):
+    """Add a new agent trace to database."""
+    import uuid
     
-    AGENT_TRACES.append(trace_entry)
-    admin_logger.info(f"Agent trace added: {trace.agent_name}")
+    trace_entry = AgentTraceModel(
+        trace_id=f"trace-{uuid.uuid4().hex[:8]}",
+        agent_name=trace.agent_name,
+        action="process",
+        input_data=trace.input_text,
+        output_data=trace.output_text,
+        decision=trace.decision,
+        duration_ms=trace.duration_ms
+    )
     
-    return {"success": True, "trace_id": trace_entry["id"]}
+    db.add(trace_entry)
+    db.commit()
+    db.refresh(trace_entry)
+    
+    admin_logger.info(f"Agent trace added to DB: {trace.agent_name}")
+    
+    return {"success": True, "trace_id": trace_entry.trace_id}
 
 
 # =============================================================================

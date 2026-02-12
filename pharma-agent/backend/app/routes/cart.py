@@ -326,6 +326,16 @@ async def checkout(user_id: int, request: CheckoutRequest, db: Session = Depends
         
         # Decrement stock
         medicine.stock_level -= item.quantity
+        
+        # Check if stock alert needed
+        if medicine.stock_level < 20:
+            from .notifications import check_and_create_stock_alert
+            check_and_create_stock_alert(
+                medicine_id=medicine.id,
+                medicine_name=medicine.name,
+                stock_level=medicine.stock_level,
+                db=db
+            )
     
     # Clear cart
     for item in cart.items:

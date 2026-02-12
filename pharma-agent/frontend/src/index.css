@@ -159,9 +159,11 @@ body {
 }
 
 .header-left {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  justify-content: flex-start;
 }
 
 .logo {
@@ -208,8 +210,9 @@ body {
 .header-center {
   display: flex;
   align-items: center;
-  gap: var(--space-xl);
-  padding: 0 var(--space-lg);
+  gap: var(--space-lg);
+  padding: 0 var(--space-md);
+  justify-content: center;
 }
 
 .status-indicator {
@@ -246,9 +249,11 @@ body {
 }
 
 .header-right {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  justify-content: flex-end;
 }
 
 .mode-toggle {
@@ -565,6 +570,12 @@ body {
   overflow: hidden;
   transition: margin var(--transition-normal);
 }
+
+/* Settings page needs scrolling - override workspace constraint */
+.workspace:has(.settings-page) {
+  overflow: visible;
+}
+
 
 /* ============ Safety Panel (Right) ============ */
 .safety-panel {

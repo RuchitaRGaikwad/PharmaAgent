@@ -28,7 +28,7 @@ from .database import engine, get_db, init_db, SessionLocal
 from .models import Base, Medicine, Customer, OrderHistory, Order, ProactiveAlert
 
 # Import routes
-from .routes import medicines, orders, customers, webhooks, alerts, prescriptions, settings, admin, cart
+from .routes import medicines, orders, customers, webhooks, alerts, prescriptions, settings, admin, cart, notifications
 
 
 def load_csv_data(db: Session):
@@ -177,6 +177,7 @@ app.include_router(prescriptions.router, prefix="/prescriptions", tags=["Prescri
 app.include_router(settings.router)
 app.include_router(admin.router)
 app.include_router(cart.router)
+app.include_router(notifications.router)
 
 
 # Chat endpoint schema
