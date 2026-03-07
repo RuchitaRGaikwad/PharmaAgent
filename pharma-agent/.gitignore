@@ -84,3 +84,4 @@ junit.xml
 # Temporary Files
 tmp/
 temp/
+backend/pharma_agent.db
