@@ -56,7 +56,8 @@ function Header({
                             const newState = !adminMode;
                             setAdminMode(newState);
                             // Log admin toggle
-                            fetch('http://localhost:8000/admin/toggle-log', {
+                            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+                            fetch(`${apiBase}/admin/toggle-log`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ enabled: newState })

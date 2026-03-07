@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, Package, AlertTriangle, X, Check, ChevronDown } from 'lucide-react';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 function NotificationBell() {
     const [notifications, setNotifications] = useState([]);
@@ -42,7 +42,8 @@ function NotificationBell() {
 
     const setupWebSocket = () => {
         try {
-            const ws = new WebSocket(`ws://localhost:8000/notifications/ws`);
+            const wsUrl = API_BASE.replace(/^http/, 'ws');
+            const ws = new WebSocket(`${wsUrl}/notifications/ws`);
 
             ws.onopen = () => {
                 console.log('Notification WebSocket connected');

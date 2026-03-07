@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Upload, FileText, CheckCircle, AlertCircle, Pill, ClipboardList } from 'lucide-react';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 function UploadPrescription() {
     const { t } = useTranslation();
