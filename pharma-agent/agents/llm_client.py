@@ -37,12 +37,18 @@ Always prioritize patient safety and regulatory compliance (India/WHO standards)
     def check_connection(self) -> bool:
         """Check if Ollama is running and specific model is available."""
         try:
-            models = ollama.list()
-            # models['models'] is a list of dicts with 'name' key
-            is_model_present = any(self.model_name in m.get('name', '') for m in models.get('models', []))
+            response = ollama.list()
+            # ollama v0.6.x returns ListResponse with .models attribute (list of Model objects)
+            models_list = getattr(response, 'models', []) or []
+            available_names = []
+            for m in models_list:
+                name = getattr(m, 'model', '') or getattr(m, 'name', '') or ''
+                available_names.append(name)
+            
+            is_model_present = any(self.model_name in name for name in available_names)
             
             if not is_model_present:
-                logger.warning(f"Ollama connected but model '{self.model_name}' not found. Available: {[m.get('name') for m in models.get('models', [])]}")
+                logger.warning(f"Ollama connected but model '{self.model_name}' not found. Available: {available_names}")
                 return False
                 
             return True
@@ -87,13 +93,15 @@ Return specific JSON format ONLY:
                 {'role': 'user', 'content': prompt},
             ], format='json')
             
-            content = response['message']['content']
+            # ollama v0.6.x returns ChatResponse object with .message.content attributes
+            content = response.message.content if hasattr(response, 'message') else response['message']['content']
             data = json.loads(content)
             return LLMResponse(content=content, structured_data=data, success=True)
             
         except json.JSONDecodeError:
             logger.error("Failed to parse LLM JSON response")
-            return LLMResponse(content=response['message']['content'], success=False, error="Invalid JSON")
+            raw = response.message.content if hasattr(response, 'message') else str(response)
+            return LLMResponse(content=raw, success=False, error="Invalid JSON")
         except Exception as e:
             logger.error(f"LLM inference error: {e}")
             return LLMResponse(content="", success=False, error=str(e))
@@ -118,7 +126,8 @@ Rules:
                 {'role': 'system', 'content': self.base_system_prompt},
                 {'role': 'user', 'content': prompt},
             ])
-            return response['message']['content']
+            # ollama v0.6.x returns ChatResponse object
+            return response.message.content if hasattr(response, 'message') else response['message']['content']
         except Exception as e:
             logger.error(f"LLM generation error: {e}")
             return "I apologize, but I'm having trouble generating a response right now."

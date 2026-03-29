@@ -37,7 +37,7 @@ ${t('chat.how_help')}`,
         status: 'success'
     });
 
-    const [messages, setMessages] = useState([getWelcomeMessage()]);
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
@@ -45,15 +45,34 @@ ${t('chat.how_help')}`,
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
-    // Update welcome message when language changes
+    // Set welcome message once i18n translations are loaded (fixes race condition)
     useEffect(() => {
-        setMessages(prev => {
-            if (prev.length === 1 && prev[0].id === 1) {
-                return [getWelcomeMessage()];
+        const setWelcome = () => {
+            // Only set if t() actually resolves (not returning raw keys)
+            const testKey = t('chat.welcome_greeting');
+            if (testKey && testKey !== 'chat.welcome_greeting') {
+                setMessages(prev => {
+                    if (prev.length === 0 || (prev.length === 1 && prev[0].id === 1)) {
+                        return [getWelcomeMessage()];
+                    }
+                    return prev;
+                });
             }
-            return prev;
-        });
-    }, [i18n.language]);
+        };
+
+        // Try immediately (translations may already be loaded)
+        setWelcome();
+
+        // Also listen for the loaded event in case translations aren't ready yet
+        const onLoaded = () => setWelcome();
+        i18n.on('loaded', onLoaded);
+        i18n.on('languageChanged', onLoaded);
+
+        return () => {
+            i18n.off('loaded', onLoaded);
+            i18n.off('languageChanged', onLoaded);
+        };
+    }, [t, i18n]);
 
     // Auto-scroll to latest message
     useEffect(() => {

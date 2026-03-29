@@ -465,6 +465,12 @@ Your safety is the priority. This is beyond pharmacy scope.
         
         # Extract quantity
         qty_match = re.search(r'(\d+)\s*(tablets?|tabs?|capsules?|strips?|bottles?)', message_lower)
+        if not qty_match:
+            # Also match when medicine name is between number and unit: "30 paracetamol tablets"
+            qty_match = re.search(r'(\d+)\s+\w+\s+(tablets?|tabs?|capsules?|strips?|bottles?)', message_lower)
+        if not qty_match:
+            # Match standalone numbers like "I need 30" or "give me 20"
+            qty_match = re.search(r'(?:need|want|order|get|give|buy)\s+(\d+)', message_lower)
         if qty_match:
             entities.quantity = int(qty_match.group(1))
         

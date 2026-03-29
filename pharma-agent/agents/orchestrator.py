@@ -87,7 +87,19 @@ class AgentOrchestrator:
     
     def _get_user_settings(self, user_id: int) -> Dict[str, Any]:
         """Fetch user settings or return defaults."""
-        from backend.app.models import UserSettings
+        try:
+            from backend.app.models import UserSettings
+        except ImportError:
+            try:
+                from app.models import UserSettings
+            except ImportError:
+                # If neither import works, return defaults
+                return {
+                    "language": "en",
+                    "admin_mode": False,
+                    "voice_assistant": True,
+                    "auto_refill": True
+                }
         
         # Default settings
         defaults = {

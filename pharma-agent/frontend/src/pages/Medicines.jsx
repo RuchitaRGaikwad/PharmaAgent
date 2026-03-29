@@ -367,7 +367,7 @@ function Medicines() {
                             </div>
 
                             <div className="medicine-price">
-                                <span className="currency">$</span>
+                                <span className="currency">₹</span>
                                 {medicine.price.toFixed(2)}
                             </div>
 
@@ -408,7 +408,7 @@ function Medicines() {
                             <div className="modal-body">
                                 <div className="modal-info-row">
                                     <label>{t('medicines.price')}</label>
-                                    <span style={{ color: '#22c55e', fontSize: 18, fontWeight: 700 }}>${selectedMedicine.price.toFixed(2)}</span>
+                                    <span style={{ color: '#22c55e', fontSize: 18, fontWeight: 700 }}>₹{selectedMedicine.price.toFixed(2)}</span>
                                 </div>
                                 <div className="modal-info-row">
                                     <label>{t('medicines.dosage')}</label>
@@ -475,7 +475,7 @@ function Medicines() {
                             <div key={item.id} className="cart-item">
                                 <div className="cart-item-info">
                                     <h4>{item.medicine_name}</h4>
-                                    <p>${item.price.toFixed(2)} x {item.quantity}</p>
+                                    <p>₹{item.price.toFixed(2)} x {item.quantity}</p>
                                 </div>
                                 <div className="cart-item-actions">
                                     <button
