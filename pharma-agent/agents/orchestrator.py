@@ -457,7 +457,7 @@ Would you like to try a different quantity or medicine?"""
 
 • Medicine: {validation.order_data.get('medicine_name')}
 • Quantity: {validation.order_data.get('quantity')} {validation.order_data.get('unit_type', 'units')}
-• Total: ${validation.order_data.get('total_price', 0):.2f}
+• Total: ₹{validation.order_data.get('total_price', 0):.2f}
 
 📋 Status: Order placed and sent to fulfillment
 📧 Confirmation email sent

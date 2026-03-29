@@ -507,7 +507,7 @@ function Medicines() {
                     <div className="cart-summary">
                         <div className="cart-total">
                             <span>{t('medicines.total')}</span>
-                            <strong>${cartTotal.toFixed(2)}</strong>
+                            <strong>₹{cartTotal.toFixed(2)}</strong>
                         </div>
                         <button
                             className="btn-checkout"

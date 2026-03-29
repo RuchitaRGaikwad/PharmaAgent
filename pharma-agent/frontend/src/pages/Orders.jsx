@@ -91,7 +91,7 @@ function Orders() {
                                     <td><strong>#{order.id}</strong></td>
                                     <td>{order.medicine_name || `Medicine #${order.medicine_id}`}</td>
                                     <td>{order.quantity}</td>
-                                    <td>${order.total_price.toFixed(2)}</td>
+                                    <td>₹{order.total_price.toFixed(2)}</td>
                                     <td>{getStatusBadge(order.status)}</td>
                                     <td>{new Date(order.created_at).toLocaleDateString()}</td>
                                 </tr>

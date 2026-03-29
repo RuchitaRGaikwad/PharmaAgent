@@ -150,7 +150,7 @@ def trigger_notification(
         - Order ID: #{order.id}
         - Medicine: {medicine.name if medicine else 'N/A'}
         - Quantity: {order.quantity}
-        - Total: ${order.total_price:.2f}
+        - Total: ₹{order.total_price:.2f}
         
         Your order is being prepared for dispatch.
         

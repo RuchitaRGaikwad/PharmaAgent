@@ -124,7 +124,7 @@ Your order has been confirmed and is being prepared!
 Order ID: #{order_id}
 Medicine: {medicine_name}
 Quantity: {quantity}
-Total: ${total_price:.2f}
+Total: ₹{total_price:.2f}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Your prescription is being processed and will be dispatched shortly.
