@@ -1,96 +1,110 @@
-/* Settings Page - Premium Polish & Full-Screen Layout Fix */
-
 /* =====================================================
-   ROOT ISSUE FIX:
-   The parent chain (html > body > #root > .app-container > .workspace)
-   all have overflow: hidden, which clips the Settings content.
+   Settings Page - Complete Redesign
    
-   SOLUTION:
-   1. Make settings-page fill entire viewport
-   2. Use proper flex layout with min-height: 0 for flex children
-   3. Enable overflow-y: auto on the scrollable container
-   4. Remove fixed height calculations that cause clipping
+   ROOT FIX: Instead of fighting the parent overflow:hidden chain,
+   we make the settings page fill its flex container and give
+   settings-main its own scrollable context with overflow-y: auto
+   and a calculated max-height that accounts for header + padding.
    ===================================================== */
 
-/* 1. Full-Screen Layout Container */
+/* 1. Page Container — fills the workspace flex slot */
 .settings-page {
     display: flex;
     gap: 32px;
     padding: 32px;
     width: 100%;
     height: 100%;
-    min-height: 0;
-    /* Critical for flex child scrolling */
     max-width: 1400px;
     margin: 0 auto;
     background: var(--bg-primary);
-    animation: fadeIn 0.4s ease-out;
+    animation: settingsFadeIn 0.4s ease-out;
+    overflow: hidden; /* children handle their own scrolling */
 }
 
-/* 2. Main Content Area - Scrollable */
+/* 2. Main Column — scrollable */
 .settings-main {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 20px;
     min-width: 0;
-    min-height: 0;
-    max-height: calc(100vh - 160px);
-    /* Force max height constraint */
-    overflow-y: scroll !important;
-    /* Force scroll always */
+    overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 12px;
-    padding-bottom: 100px;
-    /* Extra space at bottom for last card */
+    padding-right: 8px;
+    padding-bottom: 40px;
     scroll-behavior: smooth;
 }
 
-/* Custom Scrollbar - Dark Theme */
+/* Custom Scrollbar — Dark Theme */
 .settings-main::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
 .settings-main::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 4px;
+    background: transparent;
+    border-radius: 3px;
 }
 
 .settings-main::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
-    border-radius: 4px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
+    background: rgba(255, 255, 255, 0.10);
+    border-radius: 3px;
+    transition: background 0.2s;
 }
 
 .settings-main::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.20);
 }
 
 /* Firefox scrollbar */
-.settings-main {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
-}
-
-/* 3. Sidebar - Fixed Width, Non-Scrolling */
-.settings-sidebar {
-    width: 360px;
-    flex-shrink: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Sticky System Status Panel */
-.settings-sidebar .status-panel {
-    position: sticky;
-    top: 0;
-    max-height: fit-content;
+@supports (scrollbar-width: thin) {
+    .settings-main {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.10) transparent;
+    }
 }
 
 /* =====================================================
-   SETTINGS CARDS - Premium Polish
+   HEADER
+   ===================================================== */
+
+.settings-header {
+    flex-shrink: 0;
+    margin-bottom: 4px;
+}
+
+.settings-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+}
+
+.settings-header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* =====================================================
+   SIDEBAR — fixed width, non-scrolling
+   ===================================================== */
+
+.settings-sidebar {
+    width: 340px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.settings-sidebar .status-panel {
+    position: sticky;
+    top: 0;
+}
+
+/* =====================================================
+   SETTINGS CARDS — Premium glassmorphism
    ===================================================== */
 
 .settings-card {
@@ -98,97 +112,98 @@
     border: 1px solid var(--border-color);
     border-radius: 16px;
     overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
     box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        0 2px 8px rgba(0, 0, 0, 0.08),
+        0 1px 3px rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
 }
 
 .settings-card:hover {
-    border-color: rgba(99, 102, 241, 0.4);
+    border-color: rgba(99, 102, 241, 0.35);
     box-shadow:
-        0 10px 25px -5px rgba(0, 0, 0, 0.15),
-        0 8px 10px -6px rgba(0, 0, 0, 0.1),
-        0 0 0 1px rgba(99, 102, 241, 0.1);
+        0 8px 24px rgba(0, 0, 0, 0.12),
+        0 4px 8px rgba(0, 0, 0, 0.08),
+        0 0 0 1px rgba(99, 102, 241, 0.08);
+    transform: translateY(-1px);
 }
 
-/* Card Header - Clickable Accordion */
+/* Card Header — Clickable Accordion */
 .settings-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
+    padding: 18px 22px;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.01);
+    background: transparent;
     user-select: none;
     transition: background 0.2s ease;
 }
 
 .settings-card-header:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .settings-card-header-left {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
 }
 
-/* Card Icons with Gradient Backgrounds */
+/* Card Icons */
 .settings-card-icon {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    font-size: 18px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    flex-shrink: 0;
 }
 
 .settings-card-header:hover .settings-card-icon {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    transform: scale(1.06);
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.25);
 }
 
 /* Icon Gradient Variants */
 .settings-card-icon.notifications {
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
-
 .settings-card-icon.appearance {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
-
 .settings-card-icon.features {
     background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
 }
-
 .settings-card-icon.privacy {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 /* Card Title */
 .settings-card-title {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 600;
     margin: 0;
     color: var(--text-primary);
     letter-spacing: -0.01em;
 }
 
-/* Chevron Animation */
+/* Chevron */
 .settings-card-chevron {
     color: var(--text-muted);
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
 }
-
 .settings-card-chevron.open {
     transform: rotate(180deg);
 }
 
-/* Card Content - Smooth Accordion */
+/* Card Content — Smooth Accordion */
 .settings-card-content {
     max-height: 0;
     opacity: 0;
@@ -197,29 +212,27 @@
         max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
         opacity 0.3s ease;
 }
-
 .settings-card-content.open {
-    max-height: 1500px;
-    /* Generous max for full content visibility */
+    max-height: 800px;
     opacity: 1;
 }
 
 .settings-card-body {
-    padding: 0 24px 24px 24px;
+    padding: 4px 22px 22px 22px;
     border-top: 1px solid var(--border-color);
 }
 
 /* =====================================================
-   SETTING ITEMS - Individual Controls
+   SETTING ITEMS — Individual Controls
    ===================================================== */
 
 .setting-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    transition: background 0.2s ease;
+    padding: 16px 0;
+    gap: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .setting-item:last-child {
@@ -229,92 +242,94 @@
 
 .setting-info {
     flex: 1;
-    padding-right: 24px;
+    min-width: 0;
+    padding-right: 16px;
 }
 
 .setting-label {
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 6px;
-    font-size: 15px;
+    margin-bottom: 4px;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .setting-description {
-    font-size: 13px;
+    font-size: 12.5px;
     color: var(--text-secondary);
     line-height: 1.5;
 }
 
 /* =====================================================
-   TOGGLE SWITCH - Premium UX
+   TOGGLE SWITCH — Premium animated
    ===================================================== */
 
 .toggle-switch {
-    width: 52px;
-    height: 30px;
+    width: 48px;
+    height: 28px;
     background: var(--bg-tertiary);
     border-radius: 100px;
     position: relative;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
     border: 2px solid transparent;
     flex-shrink: 0;
 }
 
 .toggle-switch:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .toggle-switch.active {
     background: #22c55e;
-    box-shadow: 0 0 16px rgba(34, 197, 94, 0.4);
+    box-shadow: 0 0 14px rgba(34, 197, 94, 0.35);
 }
 
 .toggle-switch .toggle-slider {
     position: absolute;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     background: white;
     border-radius: 50%;
     top: 2px;
     left: 2px;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .toggle-switch.active .toggle-slider {
-    transform: translateX(22px);
+    transform: translateX(20px);
 }
 
 /* =====================================================
-   SELECT DROPDOWN - Settings 
+   SELECT DROPDOWN
    ===================================================== */
 
 .settings-select {
-    padding: 10px 40px 10px 14px;
+    padding: 8px 36px 8px 12px;
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: 10px;
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 12px center;
-    min-width: 140px;
+    background-position: right 10px center;
+    min-width: 130px;
+    flex-shrink: 0;
 }
 
 .settings-select:hover {
     border-color: var(--primary);
-    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .settings-select:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
 }
 
 /* =====================================================
@@ -325,15 +340,15 @@
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 22px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .status-panel-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -343,8 +358,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .status-item:last-child {
@@ -352,7 +367,7 @@
 }
 
 .status-label {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-secondary);
 }
 
@@ -360,7 +375,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
 }
 
@@ -368,7 +383,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
+    animation: statusPulse 2s ease-in-out infinite;
 }
 
 .status-indicator.online {
@@ -386,20 +401,13 @@
     box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
 }
 
-@keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.6;
-    }
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
 }
 
 /* =====================================================
-   LOADING & TOAST STATES
+   LOADING & TOAST
    ===================================================== */
 
 .settings-loading {
@@ -416,16 +424,17 @@
     position: fixed;
     bottom: 24px;
     right: 24px;
-    padding: 14px 20px;
+    padding: 12px 18px;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    animation: slideUp 0.3s ease-out;
+    gap: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    animation: toastSlideUp 0.3s ease-out;
     z-index: 1000;
+    font-size: 13px;
 }
 
 .settings-toast.success {
@@ -436,32 +445,21 @@
     border-left: 4px solid #ef4444;
 }
 
-@keyframes slideUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+@keyframes toastSlideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+@keyframes settingsFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 /* =====================================================
-   RESPONSIVE DESIGN
+   RESPONSIVE
    ===================================================== */
 
+/* Tablet landscape */
 @media (max-width: 1200px) {
     .settings-page {
         padding: 24px;
@@ -469,27 +467,29 @@
     }
 
     .settings-sidebar {
-        width: 320px;
+        width: 300px;
     }
 }
 
+/* Tablet portrait — stack layout */
 @media (max-width: 992px) {
     .settings-page {
         flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
         height: auto;
         min-height: 100%;
-        overflow-y: auto;
     }
 
     .settings-main {
         overflow-y: visible;
+        padding-right: 0;
         padding-bottom: 24px;
     }
 
     .settings-sidebar {
         width: 100%;
-        order: -1;
-        /* Move status panel to top on mobile */
+        order: -1; /* Status panel on top */
     }
 
     .settings-sidebar .status-panel {
@@ -497,17 +497,23 @@
     }
 }
 
+/* Mobile */
 @media (max-width: 640px) {
     .settings-page {
         padding: 16px;
+        gap: 16px;
+    }
+
+    .settings-header h1 {
+        font-size: 22px;
     }
 
     .settings-card-header {
-        padding: 16px;
+        padding: 14px 16px;
     }
 
     .settings-card-body {
-        padding: 0 16px 16px 16px;
+        padding: 4px 16px 16px 16px;
     }
 
     .settings-card-icon {
@@ -516,7 +522,21 @@
     }
 
     .settings-card-title {
-        font-size: 16px;
+        font-size: 15px;
+    }
+
+    .setting-item {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .setting-info {
+        padding-right: 0;
+        flex-basis: 100%;
+    }
+
+    .toggle-switch {
+        margin-left: auto;
     }
 }
 
@@ -526,14 +546,14 @@
 
 [data-theme="light"] .settings-card {
     box-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.08),
-        0 1px 2px rgba(0, 0, 0, 0.06);
+        0 1px 3px rgba(0, 0, 0, 0.06),
+        0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 [data-theme="light"] .settings-card:hover {
     box-shadow:
-        0 10px 25px -5px rgba(0, 0, 0, 0.1),
-        0 8px 10px -6px rgba(0, 0, 0, 0.08);
+        0 8px 24px rgba(0, 0, 0, 0.08),
+        0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
 [data-theme="light"] .setting-item {
@@ -545,9 +565,13 @@
 }
 
 [data-theme="light"] .settings-main::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.12);
 }
 
 [data-theme="light"] .settings-main::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .settings-card-header:hover {
+    background: rgba(0, 0, 0, 0.02);
 }

@@ -573,7 +573,7 @@ body {
 
 /* Settings page needs scrolling - override workspace constraint */
 .workspace:has(.settings-page) {
-  overflow: visible;
+  overflow: auto;
 }
 
 
