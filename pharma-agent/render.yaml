@@ -10,8 +10,18 @@ services:
     rootDir: backend
     buildCommand: chmod +x build.sh && ./build.sh
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.6
       - key: DATABASE_URL
         value: sqlite:///./pharma_agent.db
+      - key: LANGFUSE_PUBLIC_KEY
+        value: ""
+      - key: LANGFUSE_SECRET_KEY
+        value: ""
+    disk:
+      name: pharma-agent-data
+      mountPath: /opt/render/project/src
+      sizeGB: 1

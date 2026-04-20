@@ -159,9 +159,19 @@ app = FastAPI(
 )
 
 # CORS middleware for frontend communication
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+# Always include common dev and production origins
+_default_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://pharma-agent.vercel.app",
+]
+if "*" not in ALLOWED_ORIGINS:
+    ALLOWED_ORIGINS = list(set(ALLOWED_ORIGINS + _default_origins))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=ALLOWED_ORIGINS if "*" not in ALLOWED_ORIGINS else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

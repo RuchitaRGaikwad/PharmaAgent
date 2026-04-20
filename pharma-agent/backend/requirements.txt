@@ -2,13 +2,16 @@ fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
 sqlalchemy>=2.0.25
 pydantic>=2.5.3
-python-multipart>=0.0.6
+python-multipart>=0.0.9
 aiofiles>=23.2.1
 langfuse>=2.60.0
 python-dotenv>=1.0.0
 httpx>=0.26.0
-easyocr>=1.7.0
 Pillow>=10.0.0
 deep-translator>=1.11.0
 langdetect>=1.0.9
-ollama>=0.1.6
+psycopg2-binary>=2.9.9
+
+# Optional: Heavy dependencies (comment out for low-memory deployments)
+# easyocr>=1.7.0   # Requires PyTorch (~2GB) - uncomment if OCR needed
+# ollama>=0.1.6    # Requires local Ollama server - not available on cloud

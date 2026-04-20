@@ -1,20 +1,23 @@
 """
 Database configuration and session management for the Pharmacy Agent system.
-Uses SQLite for simplicity with SQLAlchemy ORM.
+Uses SQLite for local/free-tier and PostgreSQL for production.
 """
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# Database URL - using SQLite for simplicity
+# Database URL
+# Render provides DATABASE_URL starting with "postgres://" but SQLAlchemy
+# requires "postgresql://" — fix it automatically.
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./pharma_agent.db")
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# Create engine with SQLite-specific settings
-engine = create_engine(
-    DATABASE_URL, 
-    connect_args={"check_same_thread": False}  # Needed for SQLite
-)
+# Engine connect_args — only needed for SQLite
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

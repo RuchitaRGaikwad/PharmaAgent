@@ -73,8 +73,9 @@ models/
 # Local Databases
 *.db
 *.sqlite
-data/
 uploads/
+
+# Keep data/ CSVs for Render DB seeding (do NOT ignore data/)
 
 # Testing & Coverage
 coverage/
