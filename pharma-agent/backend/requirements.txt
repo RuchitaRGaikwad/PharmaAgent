@@ -11,6 +11,7 @@ Pillow>=10.0.0
 deep-translator>=1.11.0
 langdetect>=1.0.9
 psycopg2-binary>=2.9.9
+PyJWT>=2.8.0
 
 # Optional: Heavy dependencies (comment out for low-memory deployments)
 # easyocr>=1.7.0   # Requires PyTorch (~2GB) - uncomment if OCR needed
