@@ -1,5 +1,5 @@
 /* =====================================================
-   Settings Page - "Proper" Professional Redesign
+   Settings Page - Premium Professional Design
    ===================================================== */
 
 .settings-page {
@@ -7,13 +7,12 @@
     gap: 32px;
     padding: 32px;
     width: 100%;
-    height: 100%;
+    height: calc(100vh - 80px);
     max-width: 1400px;
     margin: 0 auto;
     background: var(--bg-primary);
     animation: settingsFadeIn 0.4s ease-out;
     position: relative;
-    overflow: hidden;
 }
 
 /* =====================================================
@@ -29,13 +28,12 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 12px;
-    padding-bottom: 40px;
+    padding-bottom: 60px;
     scroll-behavior: smooth;
 }
 
-/* Proper Custom Scrollbar */
 .settings-main::-webkit-scrollbar {
-    width: 10px;
+    width: 8px;
 }
 
 .settings-main::-webkit-scrollbar-track {
@@ -61,7 +59,7 @@
    ===================================================== */
 
 .translation-overlay {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(12px);
@@ -100,6 +98,7 @@
     justify-content: space-between;
     align-items: flex-end;
     margin-bottom: 8px;
+    flex-shrink: 0;
 }
 
 .header-text h1 {
@@ -141,83 +140,137 @@
 }
 
 /* =====================================================
-   VERTICAL LANGUAGE LIST
+   CARDS - Expand / Collapse
    ===================================================== */
 
-.language-vertical-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 16px;
+.settings-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transition: border-color 0.3s ease;
 }
 
-.language-list-item {
+.settings-card:hover {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.settings-card-header {
+    padding: 20px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 18px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 14px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.02);
+    user-select: none;
+    transition: background 0.2s ease;
 }
 
-.language-list-item:hover {
-    border-color: var(--primary);
-    background: rgba(16, 185, 129, 0.03);
+.settings-card-header:hover {
+    background: rgba(255, 255, 255, 0.04);
 }
 
-.language-list-item.active {
-    border-color: var(--primary);
-    background: rgba(16, 185, 129, 0.08);
-}
-
-.lang-info {
+.settings-card-header-left {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
 }
 
-.lang-flag {
-    font-size: 22px;
+.settings-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
 }
 
-.lang-label {
-    font-weight: 600;
+.settings-card-icon.notifications { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.settings-card-icon.appearance { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.settings-card-icon.ai { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.settings-card-icon.security { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.settings-card-icon.accessibility { background: linear-gradient(135deg, #10b981, #059669); }
+.settings-card-icon.privacy { background: linear-gradient(135deg, #64748b, #475569); }
+
+.settings-card-title {
+    font-size: 18px;
+    font-weight: 700;
     color: var(--text-primary);
 }
 
-.lang-toggle {
-    width: 44px;
-    height: 24px;
-    background: #334155;
-    border-radius: 20px;
-    position: relative;
-    transition: background 0.3s ease;
-}
-
-.lang-toggle.on {
-    background: #22c55e;
-}
-
-.toggle-thumb {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 18px;
-    height: 18px;
-    background: white;
-    border-radius: 50%;
+/* Chevron rotation */
+.settings-card-chevron {
+    color: var(--text-secondary);
     transition: transform 0.3s ease;
+    flex-shrink: 0;
 }
 
-.lang-toggle.on .toggle-thumb {
-    transform: translateX(20px);
+.settings-card-chevron.open {
+    transform: rotate(180deg);
+}
+
+/* Card content expand / collapse */
+.settings-card-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+}
+
+.settings-card-content.open {
+    max-height: 2000px;
+}
+
+.settings-card-body {
+    padding: 0 24px 24px 24px;
 }
 
 /* =====================================================
-   GENERAL SETTING ITEMS
+   TOGGLE SWITCH (Green Switch)
+   ===================================================== */
+
+.toggle-switch {
+    width: 48px;
+    height: 26px;
+    background: #334155;
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+}
+
+.toggle-switch.active {
+    background: #22c55e;
+}
+
+.toggle-switch.loading {
+    opacity: 0.5;
+    cursor: wait;
+}
+
+.toggle-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-switch.active .toggle-knob {
+    transform: translateX(22px);
+}
+
+/* =====================================================
+   SETTING ITEMS
    ===================================================== */
 
 .setting-section {
@@ -253,6 +306,14 @@
     border-bottom: none;
 }
 
+.setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
 .setting-label {
     font-weight: 600;
     color: var(--text-primary);
@@ -265,10 +326,92 @@
     margin-top: 2px;
 }
 
-/* Inputs & Controls */
+/* =====================================================
+   VERTICAL LANGUAGE LIST
+   ===================================================== */
+
+.language-vertical-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.language-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: var(--bg-tertiary, rgba(255,255,255,0.03));
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.language-list-item:hover {
+    border-color: var(--primary);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.language-list-item.active {
+    border-color: var(--primary);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.lang-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.lang-flag {
+    font-size: 22px;
+}
+
+.lang-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 15px;
+}
+
+/* Language toggle (inline green switch) */
+.lang-toggle {
+    width: 44px;
+    height: 24px;
+    background: #334155;
+    border-radius: 20px;
+    position: relative;
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+}
+
+.lang-toggle.on {
+    background: #22c55e;
+}
+
+.lang-toggle .toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.lang-toggle.on .toggle-thumb {
+    transform: translateX(20px);
+}
+
+/* =====================================================
+   CONTROLS - Select, Slider, Font Size
+   ===================================================== */
 
 .settings-select {
-    background: var(--bg-tertiary);
+    background: var(--bg-tertiary, rgba(255,255,255,0.05));
     border: 1px solid var(--border-color);
     border-radius: 10px;
     color: var(--text-primary);
@@ -276,22 +419,29 @@
     font-size: 14px;
     outline: none;
     cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.settings-select:focus {
+    border-color: var(--primary);
 }
 
 .settings-slider {
     flex: 1;
     margin: 0 16px;
     accent-color: var(--primary);
+    cursor: pointer;
 }
 
 .slider-value {
     font-weight: 700;
     color: var(--primary);
     min-width: 40px;
+    text-align: right;
 }
 
 .font-size-toggle {
-    background: var(--bg-tertiary);
+    background: var(--bg-tertiary, rgba(255,255,255,0.05));
     padding: 4px;
     border-radius: 10px;
     display: flex;
@@ -304,7 +454,14 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
     transition: all 0.2s ease;
+}
+
+.size-btn:hover {
+    color: var(--text-primary);
 }
 
 .size-btn.active {
@@ -312,7 +469,9 @@
     color: white;
 }
 
-/* Danger Zone */
+/* =====================================================
+   DANGER ZONE
+   ===================================================== */
 
 .danger-zone {
     margin-top: 16px;
@@ -329,6 +488,9 @@
     font-size: 14px;
     padding: 10px 16px;
     border-radius: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
     transition: all 0.2s ease;
     width: 100%;
 }
@@ -338,78 +500,133 @@
 }
 
 /* =====================================================
-   SIDEBAR & STATUS
+   SIDEBAR
    ===================================================== */
 
 .settings-sidebar {
     width: 350px;
     flex-shrink: 0;
+    overflow-y: auto;
 }
 
 /* =====================================================
-   CARDS
+   TOAST
    ===================================================== */
 
-.settings-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    margin-bottom: 20px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.settings-card-header {
-    padding: 20px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.settings-card-header-left {
+.settings-toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
     display: flex;
     align-items: center;
-    gap: 16px;
-}
-
-.settings-card-icon {
-    width: 44px;
-    height: 44px;
+    gap: 10px;
+    padding: 12px 20px;
     border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    z-index: 2000;
+    animation: toastSlideIn 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.settings-toast.success {
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid #22c55e;
+    color: #22c55e;
+}
+
+.settings-toast.error {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid #ef4444;
+    color: #ef4444;
+}
+
+@keyframes toastSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =====================================================
+   LOADING STATE
+   ===================================================== */
+
+.settings-loading {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: white;
+    height: 100%;
+    width: 100%;
+    color: var(--text-secondary);
 }
 
-.settings-card-icon.notifications { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.settings-card-icon.appearance { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.settings-card-icon.ai { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-.settings-card-icon.security { background: linear-gradient(135deg, #ef4444, #dc2626); }
-.settings-card-icon.accessibility { background: linear-gradient(135deg, #10b981, #059669); }
-.settings-card-icon.privacy { background: linear-gradient(135deg, #64748b, #475569); }
+/* =====================================================
+   ANIMATIONS
+   ===================================================== */
 
-.settings-card-title {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.settings-card-body {
-    padding: 0 24px 24px 24px;
-}
-
-/* Animations */
 @keyframes settingsFadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-spin { animation: spin 1s linear infinite; }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
 
-.animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-rgba(0, 0, 0, 0.02);
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (max-width: 1024px) {
+    .settings-page {
+        flex-direction: column;
+        height: auto;
+        padding: 20px;
+    }
+
+    .settings-sidebar {
+        width: 100%;
+    }
+
+    .settings-main {
+        overflow-y: visible;
+    }
+}
+
+@media (max-width: 640px) {
+    .settings-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .header-search {
+        width: 100%;
+    }
+
+    .settings-card-header {
+        padding: 16px;
+    }
+
+    .settings-card-body {
+        padding: 0 16px 16px 16px;
+    }
+
+    .language-list-item {
+        padding: 12px 14px;
+    }
 }
