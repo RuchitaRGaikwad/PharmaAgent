@@ -15,4 +15,4 @@ PyJWT>=2.8.0
 
 # Optional: Heavy dependencies (comment out for low-memory deployments)
 # easyocr>=1.7.0   # Requires PyTorch (~2GB) - uncomment if OCR needed
-# ollama>=0.1.6    # Requires local Ollama server - not available on cloud
+ollama>=0.1.6      # Lightweight client; needed for agents module to import properly
