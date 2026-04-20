@@ -102,6 +102,32 @@
             "data_sharing": "Data Sharing",
             "data_sharing_desc": "Help improve our AI with anonymous data"
         },
+        "security": {
+            "title": "Security",
+            "2fa": "Two-Factor Authentication",
+            "2fa_desc": "Add an extra layer of security to your account",
+            "session_timeout": "Session Timeout"
+        },
+        "ai": {
+            "title": "AI Assistant Preferences",
+            "response_style": "Response Style",
+            "voice_speed": "Voice Speed",
+            "styles": {
+                "concise": "Concise",
+                "detailed": "Detailed",
+                "clinical": "Clinical"
+            }
+        },
+        "accessibility": {
+            "title": "Accessibility",
+            "high_contrast": "High Contrast Mode",
+            "font_size": "Font Size",
+            "sizes": {
+                "small": "Small",
+                "medium": "Medium",
+                "large": "Large"
+            }
+        },
         "system_status": {
             "title": "System Status",
             "ai_core": "AI Core",

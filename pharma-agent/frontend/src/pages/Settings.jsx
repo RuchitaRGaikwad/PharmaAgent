@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, Globe, Zap, Lock, RefreshCw, Check, AlertTriangle } from 'lucide-react';
+import { 
+    Bell, Globe, Zap, Lock, RefreshCw, Check, AlertTriangle, 
+    Shield, Cpu, Eye, Info, Search, Trash2 
+} from 'lucide-react';
 import './settings.css';
 
 // Modular Components
@@ -24,18 +27,30 @@ function SettingsPage() {
         autoRefill: true,
         voiceAssistant: true,
         dataSharing: false,
-        adminMode: false
+        adminMode: false,
+        // New Fields
+        security2fa: false,
+        sessionTimeout: 30,
+        aiResponseStyle: 'Detailed',
+        aiVoiceSpeed: 1.0,
+        accessibilityHighContrast: false,
+        accessibilityFontSize: 'Medium'
     });
 
     // UI state
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState({});
     const [toast, setToast] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isTranslating, setIsTranslating] = useState(false);
+    
     const [expandedCards, setExpandedCards] = useState({
         notifications: true,
         appearance: true,
-        features: true,
-        privacy: false
+        ai: false,
+        security: false,
+        privacy: false,
+        accessibility: false
     });
 
     // System status state
@@ -53,27 +68,17 @@ function SettingsPage() {
         loadSettings();
         loadSystemStatus();
 
-        // Poll system status every 10 seconds
-        const interval = setInterval(loadSystemStatus, 10000);
+        // Poll system status every 15 seconds
+        const interval = setInterval(loadSystemStatus, 15000);
         return () => clearInterval(interval);
     }, []);
 
-    // Sync i18n language when settings load
+    // Apply dark/light theme & high contrast
     useEffect(() => {
-        const currentLang = i18n.language || 'en';
-        if (settings.language && settings.language !== currentLang && !loading) {
-            i18n.changeLanguage(settings.language);
-        }
-    }, [settings.language, i18n, loading]);
-
-    // Apply dark/light theme
-    useEffect(() => {
-        if (settings.darkMode) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-            document.documentElement.setAttribute('data-theme', 'light');
-        }
-    }, [settings.darkMode]);
+        document.documentElement.setAttribute('data-theme', settings.darkMode ? 'dark' : 'light');
+        document.documentElement.classList.toggle('high-contrast', settings.accessibilityHighContrast);
+        document.documentElement.setAttribute('data-font-size', settings.accessibilityFontSize.toLowerCase());
+    }, [settings.darkMode, settings.accessibilityHighContrast, settings.accessibilityFontSize]);
 
     const loadSettings = async () => {
         try {
@@ -99,7 +104,6 @@ function SettingsPage() {
             }
         } catch (error) {
             console.error('Failed to load system status:', error);
-            // Don't show toast for background polling failures
         }
     };
 
@@ -121,7 +125,6 @@ function SettingsPage() {
                 throw new Error('Update failed');
             }
         } catch (error) {
-            // Revert on failure
             setSettings(prev => ({ ...prev, [key]: oldValue }));
             showToast(t('common.error'), 'error');
         } finally {
@@ -130,31 +133,36 @@ function SettingsPage() {
     };
 
     const updateLanguage = async (lang) => {
+        if (settings.language === lang) return;
+        
+        // Show loading overlay for a second
+        setIsTranslating(true);
         const oldLang = settings.language;
+        
+        // Optimistic UI
         setSettings(prev => ({ ...prev, language: lang }));
-        setUpdating(prev => ({ ...prev, language: true }));
-
-        // Change app language immediately
-        i18n.changeLanguage(lang);
-
+        
         try {
+            // Update backend
             const response = await fetch(
                 `${API_BASE}/settings/${USER_ID}?key=language&value=${lang}`,
                 { method: 'PATCH' }
             );
 
             if (response.ok) {
-                showToast(t('common.success'), 'success');
+                // Actually change the language after a small delay to "feel" the change
+                setTimeout(() => {
+                    i18n.changeLanguage(lang);
+                    setIsTranslating(false);
+                    showToast(t('common.success'), 'success');
+                }, 1000);
             } else {
                 throw new Error('Language update failed');
             }
         } catch (error) {
-            // Revert on failure
             setSettings(prev => ({ ...prev, language: oldLang }));
-            i18n.changeLanguage(oldLang);
+            setIsTranslating(false);
             showToast(t('common.error'), 'error');
-        } finally {
-            setUpdating(prev => ({ ...prev, language: false }));
         }
     };
 
@@ -171,23 +179,53 @@ function SettingsPage() {
         return (
             <div className="settings-page">
                 <div className="settings-loading">
-                    <RefreshCw size={32} />
+                    <RefreshCw size={32} className="animate-spin" />
                     <p style={{ marginTop: '16px' }}>{t('common.loading')}</p>
                 </div>
             </div>
         );
     }
 
+    const languages = [
+        { code: 'en', label: 'English', flag: '🇺🇸' },
+        { code: 'hi', label: 'हिन्दी', flag: '🇮🇳' },
+        { code: 'mr', label: 'मराठी', flag: '🇮🇳' },
+        { code: 'es', label: 'Español', flag: '🇪🇸' },
+        { code: 'fr', label: 'Français', flag: '🇫🇷' },
+        { code: 'de', label: 'Deutsch', flag: '🇩🇪' }
+    ];
+
     return (
         <div className="settings-page">
+            {/* Translation Loading Overlay */}
+            {isTranslating && (
+                <div className="translation-overlay">
+                    <div className="translation-spinner">
+                        <Globe size={48} className="animate-pulse" />
+                        <h2>{t('common.loading')}</h2>
+                    </div>
+                </div>
+            )}
+
             {/* Main Settings Column */}
             <div className="settings-main">
                 <div className="settings-header">
-                    <h1>⚙️ {t('settings.title')}</h1>
-                    <p>{t('settings.subtitle')}</p>
+                    <div className="header-text">
+                        <h1>⚙️ {t('settings.title')}</h1>
+                        <p>{t('settings.subtitle')}</p>
+                    </div>
+                    <div className="header-search">
+                        <Search size={18} />
+                        <input 
+                            type="text" 
+                            placeholder={t('medicines.search_placeholder')} 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
                 </div>
 
-                {/* Notifications Card */}
+                {/* Notifications Section */}
                 <SettingsCard
                     icon={Bell}
                     title={t('settings.notifications.title')}
@@ -202,7 +240,6 @@ function SettingsPage() {
                         loading={updating.notifications}
                         onChange={() => updateSetting('notifications', !settings.notifications)}
                     />
-                    {/* Fixed Logic: Email Alerts */}
                     <SettingItem
                         label={t('settings.notifications.email')}
                         description={t('settings.notifications.email_desc')}
@@ -210,7 +247,6 @@ function SettingsPage() {
                         loading={updating.emailAlerts}
                         onChange={() => updateSetting('emailAlerts', !settings.emailAlerts)}
                     />
-                    {/* Fixed Logic: SMS Alerts */}
                     <SettingItem
                         label={t('settings.notifications.sms')}
                         description={t('settings.notifications.sms_desc')}
@@ -220,7 +256,7 @@ function SettingsPage() {
                     />
                 </SettingsCard>
 
-                {/* Language & Appearance Card */}
+                {/* Regional & Appearance Section */}
                 <SettingsCard
                     icon={Globe}
                     title={t('settings.appearance.title')}
@@ -228,24 +264,28 @@ function SettingsPage() {
                     expanded={expandedCards.appearance}
                     onToggle={() => toggleCard('appearance')}
                 >
-                    <div className="setting-item">
-                        <div className="setting-info">
-                            <div className="setting-label">{t('settings.appearance.language')}</div>
-                            <div className="setting-description">{t('settings.appearance.language_desc')}</div>
+                    <div className="setting-section">
+                        <div className="section-header">
+                            <span className="section-label">{t('settings.appearance.language')}</span>
+                            <span className="section-desc">{t('settings.appearance.language_desc')}</span>
                         </div>
-                        <select
-                            className="settings-select"
-                            value={settings.language}
-                            onChange={(e) => updateLanguage(e.target.value)}
-                            disabled={updating.language}
-                        >
-                            <option value="en">🇺🇸 English</option>
-                            <option value="hi">🇮🇳 हिंदी</option>
-                            <option value="mr">🇮🇳 मराठी</option>
-                            <option value="es">🇪🇸 Español</option>
-                            <option value="fr">🇫🇷 Français</option>
-                            <option value="de">🇩🇪 Deutsch</option>
-                        </select>
+                        <div className="language-vertical-list">
+                            {languages.map((lang) => (
+                                <div 
+                                    key={lang.code} 
+                                    className={`language-list-item ${settings.language === lang.code ? 'active' : ''}`}
+                                    onClick={() => updateLanguage(lang.code)}
+                                >
+                                    <div className="lang-info">
+                                        <span className="lang-flag">{lang.flag}</span>
+                                        <span className="lang-label">{lang.label}</span>
+                                    </div>
+                                    <div className={`lang-toggle ${settings.language === lang.code ? 'on' : 'off'}`}>
+                                        <div className="toggle-thumb"></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                     <SettingItem
                         label={t('settings.appearance.dark_mode')}
@@ -256,21 +296,28 @@ function SettingsPage() {
                     />
                 </SettingsCard>
 
-                {/* Features Card */}
+                {/* AI Preferences Section */}
                 <SettingsCard
-                    icon={Zap}
-                    title={t('settings.features.title')}
-                    type="features"
-                    expanded={expandedCards.features}
-                    onToggle={() => toggleCard('features')}
+                    icon={Cpu}
+                    title={t('settings.ai.title')}
+                    type="ai"
+                    expanded={expandedCards.ai}
+                    onToggle={() => toggleCard('ai')}
                 >
-                    <SettingItem
-                        label={t('settings.features.auto_refill')}
-                        description={t('settings.features.auto_refill_desc')}
-                        value={settings.autoRefill}
-                        loading={updating.autoRefill}
-                        onChange={() => updateSetting('autoRefill', !settings.autoRefill)}
-                    />
+                    <div className="setting-item">
+                        <div className="setting-info">
+                            <div className="setting-label">{t('settings.ai.response_style')}</div>
+                        </div>
+                        <select 
+                            className="settings-select"
+                            value={settings.aiResponseStyle}
+                            onChange={(e) => updateSetting('aiResponseStyle', e.target.value)}
+                        >
+                            <option value="Concise">{t('settings.ai.styles.concise')}</option>
+                            <option value="Detailed">{t('settings.ai.styles.detailed')}</option>
+                            <option value="Clinical">{t('settings.ai.styles.clinical')}</option>
+                        </select>
+                    </div>
                     <SettingItem
                         label={t('settings.features.voice')}
                         description={t('settings.features.voice_desc')}
@@ -278,16 +325,73 @@ function SettingsPage() {
                         loading={updating.voiceAssistant}
                         onChange={() => updateSetting('voiceAssistant', !settings.voiceAssistant)}
                     />
-                    <SettingItem
-                        label={t('settings.features.admin')}
-                        description={t('settings.features.admin_desc')}
-                        value={settings.adminMode}
-                        loading={updating.adminMode}
-                        onChange={() => updateSetting('adminMode', !settings.adminMode)}
-                    />
                 </SettingsCard>
 
-                {/* Privacy Card */}
+                {/* Security Section */}
+                <SettingsCard
+                    icon={Shield}
+                    title={t('settings.security.title')}
+                    type="security"
+                    expanded={expandedCards.security}
+                    onToggle={() => toggleCard('security')}
+                >
+                    <SettingItem
+                        label={t('settings.security.2fa')}
+                        description={t('settings.security.2fa_desc')}
+                        value={settings.security2fa}
+                        loading={updating.security2fa}
+                        onChange={() => updateSetting('security2fa', !settings.security2fa)}
+                    />
+                    <div className="setting-item">
+                        <div className="setting-info">
+                            <div className="setting-label">{t('settings.security.session_timeout')}</div>
+                        </div>
+                        <input 
+                            type="range" 
+                            min="5" 
+                            max="120" 
+                            step="5"
+                            className="settings-slider"
+                            value={settings.sessionTimeout}
+                            onChange={(e) => updateSetting('sessionTimeout', parseInt(e.target.value))}
+                        />
+                        <span className="slider-value">{settings.sessionTimeout}m</span>
+                    </div>
+                </SettingsCard>
+
+                {/* Accessibility Section */}
+                <SettingsCard
+                    icon={Eye}
+                    title={t('settings.accessibility.title')}
+                    type="accessibility"
+                    expanded={expandedCards.accessibility}
+                    onToggle={() => toggleCard('accessibility')}
+                >
+                    <SettingItem
+                        label={t('settings.accessibility.high_contrast')}
+                        value={settings.accessibilityHighContrast}
+                        loading={updating.accessibilityHighContrast}
+                        onChange={() => updateSetting('accessibilityHighContrast', !settings.accessibilityHighContrast)}
+                    />
+                    <div className="setting-item">
+                        <div className="setting-info">
+                            <div className="setting-label">{t('settings.accessibility.font_size')}</div>
+                        </div>
+                        <div className="font-size-toggle">
+                            {['Small', 'Medium', 'Large'].map(size => (
+                                <button 
+                                    key={size}
+                                    className={`size-btn ${settings.accessibilityFontSize === size ? 'active' : ''}`}
+                                    onClick={() => updateSetting('accessibilityFontSize', size)}
+                                >
+                                    {t(`settings.accessibility.sizes.${size.toLowerCase()}`)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </SettingsCard>
+
+                {/* Privacy & Danger Zone */}
                 <SettingsCard
                     icon={Lock}
                     title={t('settings.privacy.title')}
@@ -302,6 +406,12 @@ function SettingsPage() {
                         loading={updating.dataSharing}
                         onChange={() => updateSetting('dataSharing', !settings.dataSharing)}
                     />
+                    <div className="danger-zone">
+                        <button className="danger-btn">
+                            <Trash2 size={16} />
+                            {t('common.delete')} Conversation History
+                        </button>
+                    </div>
                 </SettingsCard>
             </div>
 

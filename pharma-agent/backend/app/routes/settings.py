@@ -34,6 +34,14 @@ class UserSettingsSchema(BaseModel):
     voiceAssistant: bool = True
     dataSharing: bool = False
     adminMode: bool = False
+    
+    # New Fields
+    security2fa: bool = False
+    sessionTimeout: int = 30
+    aiResponseStyle: str = "Detailed"
+    aiVoiceSpeed: float = 1.0
+    accessibilityHighContrast: bool = False
+    accessibilityFontSize: str = "Medium"
 
     class Config:
         from_attributes = True
@@ -72,7 +80,14 @@ def get_or_create_settings(db: Session, user_id: int) -> UserSettings:
             auto_refill=True,
             voice_assistant=True,
             data_sharing=False,
-            admin_mode=False
+            admin_mode=False,
+            # New Defaults
+            security_2fa=False,
+            session_timeout=30,
+            ai_response_style="Detailed",
+            ai_voice_speed=1.0,
+            accessibility_high_contrast=False,
+            accessibility_font_size="Medium"
         )
         db.add(settings)
         db.commit()
@@ -91,7 +106,14 @@ def model_to_schema(settings: UserSettings) -> UserSettingsSchema:
         autoRefill=settings.auto_refill,
         voiceAssistant=settings.voice_assistant,
         dataSharing=settings.data_sharing,
-        adminMode=settings.admin_mode
+        adminMode=settings.admin_mode,
+        # New Enriched Mapping
+        security2fa=settings.security_2fa,
+        sessionTimeout=settings.session_timeout,
+        aiResponseStyle=settings.ai_response_style,
+        aiVoiceSpeed=settings.ai_voice_speed,
+        accessibilityHighContrast=settings.accessibility_high_contrast,
+        accessibilityFontSize=settings.accessibility_font_size
     )
 
 
@@ -125,6 +147,14 @@ def update_settings(user_id: int, new_settings: UserSettingsSchema, db: Session 
     settings.voice_assistant = new_settings.voiceAssistant
     settings.data_sharing = new_settings.dataSharing
     settings.admin_mode = new_settings.adminMode
+    # New Field Logic
+    settings.security_2fa = new_settings.security2fa
+    settings.session_timeout = new_settings.sessionTimeout
+    settings.ai_response_style = new_settings.aiResponseStyle
+    settings.ai_voice_speed = new_settings.aiVoiceSpeed
+    settings.accessibility_high_contrast = new_settings.accessibilityHighContrast
+    settings.accessibility_font_size = new_settings.accessibilityFontSize
+    
     settings.updated_at = datetime.utcnow()
     
     db.commit()
@@ -157,7 +187,14 @@ def patch_setting(
         "autoRefill": "auto_refill",
         "voiceAssistant": "voice_assistant",
         "dataSharing": "data_sharing",
-        "adminMode": "admin_mode"
+        "adminMode": "admin_mode",
+        # New Mappings
+        "security2fa": "security_2fa",
+        "sessionTimeout": "session_timeout",
+        "aiResponseStyle": "ai_response_style",
+        "aiVoiceSpeed": "ai_voice_speed",
+        "accessibilityHighContrast": "accessibility_high_contrast",
+        "accessibilityFontSize": "accessibility_font_size"
     }
     
     if key not in key_mapping:

@@ -102,6 +102,32 @@
             "data_sharing": "डेटा शेअरिंग",
             "data_sharing_desc": "अनामित डेटासह आमचे AI सुधारण्यास मदत करा"
         },
+        "security": {
+            "title": "सुरक्षा",
+            "2fa": "दोन-चरण प्रमाणीकरण",
+            "2fa_desc": "तुमच्या खात्यात सुरक्षेचा अतिरिक्त स्तर जोडा",
+            "session_timeout": "सत्र समाप्ती वेळ"
+        },
+        "ai": {
+            "title": "एआय सहाय्यक पसंती",
+            "response_style": "प्रतिसाद शैली",
+            "voice_speed": "आवाजाचा वेग",
+            "styles": {
+                "concise": "थोडक्यात",
+                "detailed": "सविस्तर",
+                "clinical": "क्लिनिकल"
+            }
+        },
+        "accessibility": {
+            "title": "प्रवेशयोग्यता",
+            "high_contrast": "उच्च कॉन्ट्रास्ट मोड",
+            "font_size": "फॉन्ट आकार",
+            "sizes": {
+                "small": "लहान",
+                "medium": "मध्यम",
+                "large": "मोठा"
+            }
+        },
         "system_status": {
             "title": "सिस्टम स्थिती",
             "ai_core": "AI कोर",

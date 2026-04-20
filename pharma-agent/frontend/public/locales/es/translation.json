@@ -102,6 +102,32 @@
             "data_sharing": "Compartir Datos",
             "data_sharing_desc": "Ayuda a mejorar nuestra AI con datos anónimos"
         },
+        "security": {
+            "title": "Seguridad",
+            "2fa": "Autenticación de Dos Factores",
+            "2fa_desc": "Agregue una capa extra de seguridad a su cuenta",
+            "session_timeout": "Tiempo de espera de sesión"
+        },
+        "ai": {
+            "title": "Preferencias del Asistente AI",
+            "response_style": "Estilo de Respuesta",
+            "voice_speed": "Velocidad de Voz",
+            "styles": {
+                "concise": "Conciso",
+                "detailed": "Detallado",
+                "clinical": "Clínico"
+            }
+        },
+        "accessibility": {
+            "title": "Accesibilidad",
+            "high_contrast": "Modo de Alto Contraste",
+            "font_size": "Tamaño de Fuente",
+            "sizes": {
+                "small": "Pequeño",
+                "medium": "Mediano",
+                "large": "Grande"
+            }
+        },
         "system_status": {
             "title": "Estado del Sistema",
             "ai_core": "Núcleo AI",

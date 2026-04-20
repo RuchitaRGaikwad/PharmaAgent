@@ -102,6 +102,32 @@
             "data_sharing": "Datenfreigabe",
             "data_sharing_desc": "Helfen Sie, unsere KI mit anonymen Daten zu verbessern"
         },
+        "security": {
+            "title": "Sicherheit",
+            "2fa": "Zwei-Faktor-Authentifizierung",
+            "2fa_desc": "Fügen Sie Ihrem Konto eine zusätzliche Sicherheitsebene hinzu",
+            "session_timeout": "Sitzungs-Timeout"
+        },
+        "ai": {
+            "title": "KI-Assistenten-Einstellungen",
+            "response_style": "Antwortstil",
+            "voice_speed": "Sprachgeschwindigkeit",
+            "styles": {
+                "concise": "Prägnant",
+                "detailed": "Détaillé",
+                "clinical": "Klinisch"
+            }
+        },
+        "accessibility": {
+            "title": "Barrierefreiheit",
+            "high_contrast": "Hoher Kontrastmodus",
+            "font_size": "Schriftgröße",
+            "sizes": {
+                "small": "Klein",
+                "medium": "Mittel",
+                "large": "Groß"
+            }
+        },
         "system_status": {
             "title": "Systemstatus",
             "ai_core": "KI-Kern",

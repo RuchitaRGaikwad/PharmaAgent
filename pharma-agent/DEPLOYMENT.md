@@ -4,109 +4,86 @@
 
 ```
 ┌─────────────────────┐         ┌────────────────────────────┐
-│   Vercel (Frontend)  │ ──────▶ │  Google Colab (Backend)     │
-│   React/Vite App     │  HTTPS  │  FastAPI + SQLite + Agents  │
-│   VITE_API_URL=ngrok │         │  Exposed via ngrok tunnel   │
+│   Vercel (Frontend)  │ ──────▶ │   Render (Backend)          │
+│   React/Vite App     │  HTTPS  │   FastAPI + SQLite + Agents │
+│   VITE_API_URL=Render│         │   Persistent Disk Sync      │
 └─────────────────────┘         └────────────────────────────┘
 ```
 
 ---
 
-## Part 1: Backend on Google Colab + ngrok
+## Part 1: Backend on Render
 
 ### Prerequisites
-- Google account (for Colab)
-- Free ngrok account → [ngrok.com/signup](https://ngrok.com/signup)
-- Copy your **auth token** from [dashboard.ngrok.com](https://dashboard.ngrok.com/get-started/your-authtoken)
+- GitHub account with the project pushed.
+- Render account → [render.com](https://render.com)
 
 ### Steps
 
-1. **Upload the notebook** `PharmaAgent_Backend.ipynb` to Google Colab
-2. **Run Cell 1** → Choose one upload method (GitHub clone / Google Drive / zip upload)
-3. **Run Cell 2** → Installs all Python dependencies
-4. **Run Cell 3** → Paste your ngrok auth token when prompted
-5. **Run Cell 4** → Starts the FastAPI server + ngrok tunnel
-6. **Copy the public URL** printed in the output (e.g. `https://abc123.ngrok-free.app`)
-7. **(Optional) Run Cell 5** → Tests the API to confirm it works
+1. **Create New Web Service**:
+   - Connect your GitHub repo.
+   - Select the repository.
+   - Set **Name** to `pharma-agent-backend`.
+   - Set **Root Directory** to `backend`.
+   - **Environment**: `Python`.
+   - **Build Command**: `chmod +x build.sh && ./build.sh`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port 10000`
 
-> ⚠️ **Keep Cell 4 running!** Stopping it kills the server and tunnel.
+2. **Configure Storage (Critical for SQLite)**:
+   - Go to **Advanced** → **Disk**.
+   - Add a disk:
+     - **Name**: `pharma-agent-data`
+     - **Mount Path**: `/opt/render/project/src`
+     - **Size**: 1GB (Free tier)
 
-> 💡 **ngrok free tier** gives a random URL each restart. With a [paid plan](https://ngrok.com/pricing) ($8/mo), you get a **static domain** that never changes.
+3. **Deploy**: Render will build using your `render.yaml` and `build.sh`.
+4. **Copy the URL**: (e.g. `https://pharma-agent-backend.onrender.com`)
 
 ---
 
 ## Part 2: Frontend on Vercel
 
 ### Prerequisites
-- GitHub account with the project pushed
 - Vercel account → [vercel.com](https://vercel.com)
 
 ### Steps
 
-1. **Push to GitHub** (if not already):
-   ```bash
-   cd pharma-agent
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git remote add origin https://github.com/YOUR_USERNAME/pharma-agent.git
-   git push -u origin main
-   ```
+1. **Import Project**:
+   - Go to [vercel.com/new](https://vercel.com/new) and import your repo.
+   - Set **Root Directory** to `frontend`.
 
-2. **Import on Vercel**:
-   - Go to [vercel.com/new](https://vercel.com/new)
-   - Import your GitHub repo
-   - Set **Root Directory** to `frontend`
-   - Framework will auto-detect as **Vite**
-
-3. **Add Environment Variable**:
-   - Go to **Settings** → **Environment Variables**
+2. **Set Environment Variables**:
+   - Go to **Settings** → **Environment Variables**.
    - Add:
      | Key | Value |
      |-----|-------|
-     | `VITE_API_URL` | Your ngrok URL (e.g. `https://abc123.ngrok-free.app`) |
+     | `VITE_API_URL` | Your Render URL (or ngrok URL if testing locally) |
 
-4. **Deploy** → Vercel builds and deploys automatically
-
----
-
-## Updating the Backend URL
-
-When the ngrok URL changes (free tier), you need to:
-
-1. Copy the new URL from the Colab notebook output
-2. Go to Vercel → **Settings** → **Environment Variables**
-3. Update `VITE_API_URL` with the new URL
-4. Go to **Deployments** → Click **⋮** on latest → **Redeploy**
-
-> 💡 With a **static ngrok domain**, you set this once and never update again.
+3. **Deploy**: Vercel will build and host your React application.
 
 ---
 
-## Testing
+## Part 3: Local Testing with ngrok (Optional)
 
-After both are running, verify:
+If you are developing locally and want to expose your local backend to your Vercel frontend:
 
-```bash
-# Test backend directly
-curl https://YOUR-NGROK-URL.ngrok-free.app/health
-
-# Test chat
-curl -X POST https://YOUR-NGROK-URL.ngrok-free.app/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "hello"}'
-```
-
-Then open your Vercel URL in a browser — you should see the PharmaAgent chat interface connected to the Colab backend.
+1. **Start Local Backend**: `uvicorn app.main:app --reload`
+2. **Start ngrok**: `ngrok http 8000`
+3. **Update Vercel**: Paste the ngrok URL into the `VITE_API_URL` environment variable and redeploy.
 
 ---
 
-## Troubleshooting
+## 🛠️ Maintenance & Updates
+
+### Schema Changes
+Since this project uses SQLite without Alembic, when changing the database schema:
+1. Commit and push the updated `pharma_agent.db` from your local machine.
+2. Render will update the persistent file upon the next deploy.
+
+### Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| Blank page on Vercel | Check `VITE_API_URL` is set and redeploy |
-| CORS errors | Backend already allows `*` origins — should work |
-| Colab disconnects | Google Colab has a ~90 min idle timeout. Keep the tab active |
-| ngrok says "tunnel not found" | Re-run Cell 4 in Colab and update URL in Vercel |
-| Chat returns error | Check Colab logs; backend runs in rule-based mode (no Ollama) |
+| 404 on API calls | Ensure `VITE_API_URL` in Vercel ends without a trailing slash |
+| DB Resetting | Verify the Disk is correctly mounted in Render dashboard |
+| Build Failures | Check `backend/build.sh` logs for missing components |

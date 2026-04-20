@@ -173,6 +173,15 @@ class UserSettings(Base):
     voice_assistant = Column(Boolean, default=True)
     data_sharing = Column(Boolean, default=False)
     admin_mode = Column(Boolean, default=False)
+    
+    # New Extended Settings
+    security_2fa = Column(Boolean, default=False)
+    session_timeout = Column(Integer, default=30)  # in minutes
+    ai_response_style = Column(String(50), default="Detailed")  # Concise, Detailed, Clinical
+    ai_voice_speed = Column(Float, default=1.0)
+    accessibility_high_contrast = Column(Boolean, default=False)
+    accessibility_font_size = Column(String(20), default="Medium")
+    
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

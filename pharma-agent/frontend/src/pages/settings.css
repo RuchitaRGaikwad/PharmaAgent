@@ -1,13 +1,7 @@
 /* =====================================================
-   Settings Page - Complete Redesign
-   
-   ROOT FIX: Instead of fighting the parent overflow:hidden chain,
-   we make the settings page fill its flex container and give
-   settings-main its own scrollable context with overflow-y: auto
-   and a calculated max-height that accounts for header + padding.
+   Settings Page - "Proper" Professional Redesign
    ===================================================== */
 
-/* 1. Page Container — fills the workspace flex slot */
 .settings-page {
     display: flex;
     gap: 32px;
@@ -18,10 +12,14 @@
     margin: 0 auto;
     background: var(--bg-primary);
     animation: settingsFadeIn 0.4s ease-out;
-    overflow: hidden; /* children handle their own scrolling */
+    position: relative;
+    overflow: hidden;
 }
 
-/* 2. Main Column — scrollable */
+/* =====================================================
+   CUSTOM SCROLLBAR
+   ===================================================== */
+
 .settings-main {
     flex: 1;
     display: flex;
@@ -30,548 +28,388 @@
     min-width: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 8px;
+    padding-right: 12px;
     padding-bottom: 40px;
     scroll-behavior: smooth;
 }
 
-/* Custom Scrollbar — Dark Theme */
+/* Proper Custom Scrollbar */
 .settings-main::-webkit-scrollbar {
-    width: 6px;
+    width: 10px;
 }
 
 .settings-main::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
 }
 
 .settings-main::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.10);
-    border-radius: 3px;
-    transition: background 0.2s;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
 }
 
 .settings-main::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.20);
-}
-
-/* Firefox scrollbar */
-@supports (scrollbar-width: thin) {
-    .settings-main {
-        scrollbar-width: thin;
-        scrollbar-color: rgba(255, 255, 255, 0.10) transparent;
-    }
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid transparent;
+    background-clip: padding-box;
 }
 
 /* =====================================================
-   HEADER
+   TRANSLATION OVERLAY
+   ===================================================== */
+
+.translation-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInOverlay 0.3s ease;
+}
+
+.translation-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    color: var(--primary);
+}
+
+.translation-spinner h2 {
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* =====================================================
+   HEADER & SEARCH
    ===================================================== */
 
 .settings-header {
-    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 8px;
+}
+
+.header-text h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-primary);
     margin-bottom: 4px;
 }
 
-.settings-header h1 {
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.02em;
-    margin-bottom: 6px;
-}
-
-.settings-header p {
-    font-size: 14px;
+.header-text p {
     color: var(--text-secondary);
-    line-height: 1.5;
+    font-size: 14px;
 }
 
-/* =====================================================
-   SIDEBAR — fixed width, non-scrolling
-   ===================================================== */
-
-.settings-sidebar {
-    width: 340px;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-}
-
-.settings-sidebar .status-panel {
-    position: sticky;
-    top: 0;
-}
-
-/* =====================================================
-   SETTINGS CARDS — Premium glassmorphism
-   ===================================================== */
-
-.settings-card {
+.header-search {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
-    overflow: hidden;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.08),
-        0 1px 3px rgba(0, 0, 0, 0.06);
-    flex-shrink: 0;
+    border-radius: 12px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 300px;
+    transition: all 0.3s ease;
 }
 
-.settings-card:hover {
-    border-color: rgba(99, 102, 241, 0.35);
-    box-shadow:
-        0 8px 24px rgba(0, 0, 0, 0.12),
-        0 4px 8px rgba(0, 0, 0, 0.08),
-        0 0 0 1px rgba(99, 102, 241, 0.08);
-    transform: translateY(-1px);
+.header-search:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
-/* Card Header — Clickable Accordion */
-.settings-card-header {
+.header-search input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    width: 100%;
+    font-size: 14px;
+}
+
+/* =====================================================
+   VERTICAL LANGUAGE LIST
+   ===================================================== */
+
+.language-vertical-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.language-list-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 18px 22px;
+    padding: 14px 18px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
     cursor: pointer;
-    background: transparent;
-    user-select: none;
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
 }
 
-.settings-card-header:hover {
-    background: rgba(255, 255, 255, 0.03);
+.language-list-item:hover {
+    border-color: var(--primary);
+    background: rgba(16, 185, 129, 0.03);
 }
 
-.settings-card-header-left {
+.language-list-item.active {
+    border-color: var(--primary);
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.lang-info {
     display: flex;
     align-items: center;
     gap: 14px;
 }
 
-/* Card Icons */
-.settings-card-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 18px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    flex-shrink: 0;
+.lang-flag {
+    font-size: 22px;
 }
 
-.settings-card-header:hover .settings-card-icon {
-    transform: scale(1.06);
-    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.25);
-}
-
-/* Icon Gradient Variants */
-.settings-card-icon.notifications {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-.settings-card-icon.appearance {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-}
-.settings-card-icon.features {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-}
-.settings-card-icon.privacy {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-/* Card Title */
-.settings-card-title {
-    font-size: 17px;
+.lang-label {
     font-weight: 600;
-    margin: 0;
     color: var(--text-primary);
-    letter-spacing: -0.01em;
 }
 
-/* Chevron */
-.settings-card-chevron {
-    color: var(--text-muted);
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    flex-shrink: 0;
-}
-.settings-card-chevron.open {
-    transform: rotate(180deg);
-}
-
-/* Card Content — Smooth Accordion */
-.settings-card-content {
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition:
-        max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.3s ease;
-}
-.settings-card-content.open {
-    max-height: 800px;
-    opacity: 1;
+.lang-toggle {
+    width: 44px;
+    height: 24px;
+    background: #334155;
+    border-radius: 20px;
+    position: relative;
+    transition: background 0.3s ease;
 }
 
-.settings-card-body {
-    padding: 4px 22px 22px 22px;
-    border-top: 1px solid var(--border-color);
+.lang-toggle.on {
+    background: #22c55e;
+}
+
+.toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.lang-toggle.on .toggle-thumb {
+    transform: translateX(20px);
 }
 
 /* =====================================================
-   SETTING ITEMS — Individual Controls
+   GENERAL SETTING ITEMS
    ===================================================== */
+
+.setting-section {
+    padding: 12px 0;
+}
+
+.section-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 8px;
+}
+
+.section-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.section-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
 
 .setting-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 16px 0;
-    gap: 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .setting-item:last-child {
     border-bottom: none;
-    padding-bottom: 0;
-}
-
-.setting-info {
-    flex: 1;
-    min-width: 0;
-    padding-right: 16px;
 }
 
 .setting-label {
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 4px;
-    font-size: 14px;
-    line-height: 1.4;
+    font-size: 15px;
 }
 
 .setting-description {
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--text-secondary);
-    line-height: 1.5;
+    margin-top: 2px;
 }
 
-/* =====================================================
-   TOGGLE SWITCH — Premium animated
-   ===================================================== */
-
-.toggle-switch {
-    width: 48px;
-    height: 28px;
-    background: var(--bg-tertiary);
-    border-radius: 100px;
-    position: relative;
-    cursor: pointer;
-    transition: background 0.3s ease, box-shadow 0.3s ease;
-    border: 2px solid transparent;
-    flex-shrink: 0;
-}
-
-.toggle-switch:hover {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.toggle-switch.active {
-    background: #22c55e;
-    box-shadow: 0 0 14px rgba(34, 197, 94, 0.35);
-}
-
-.toggle-switch .toggle-slider {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: white;
-    border-radius: 50%;
-    top: 2px;
-    left: 2px;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-.toggle-switch.active .toggle-slider {
-    transform: translateX(20px);
-}
-
-/* =====================================================
-   SELECT DROPDOWN
-   ===================================================== */
+/* Inputs & Controls */
 
 .settings-select {
-    padding: 8px 36px 8px 12px;
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: 10px;
     color: var(--text-primary);
-    font-size: 13px;
+    padding: 8px 12px;
+    font-size: 14px;
+    outline: none;
     cursor: pointer;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    min-width: 130px;
+}
+
+.settings-slider {
+    flex: 1;
+    margin: 0 16px;
+    accent-color: var(--primary);
+}
+
+.slider-value {
+    font-weight: 700;
+    color: var(--primary);
+    min-width: 40px;
+}
+
+.font-size-toggle {
+    background: var(--bg-tertiary);
+    padding: 4px;
+    border-radius: 10px;
+    display: flex;
+    gap: 2px;
+}
+
+.size-btn {
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.size-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* Danger Zone */
+
+.danger-zone {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed rgba(239, 68, 68, 0.3);
+}
+
+.danger-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ef4444;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.danger-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* =====================================================
+   SIDEBAR & STATUS
+   ===================================================== */
+
+.settings-sidebar {
+    width: 350px;
     flex-shrink: 0;
 }
 
-.settings-select:hover {
-    border-color: var(--primary);
-}
-
-.settings-select:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
-}
-
 /* =====================================================
-   SYSTEM STATUS PANEL
+   CARDS
    ===================================================== */
 
-.status-panel {
+.settings-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 22px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-radius: 20px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.status-panel-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 18px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.status-item {
+.settings-card-header {
+    padding: 20px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.02);
 }
 
-.status-item:last-child {
-    border-bottom: none;
-}
-
-.status-label {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.status-value {
+.settings-card-header-left {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    animation: statusPulse 2s ease-in-out infinite;
-}
-
-.status-indicator.online {
-    background: #22c55e;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
-}
-
-.status-indicator.warning {
-    background: #f59e0b;
-    box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
-}
-
-.status-indicator.error {
-    background: #ef4444;
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
-}
-
-@keyframes statusPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-/* =====================================================
-   LOADING & TOAST
-   ===================================================== */
-
-.settings-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
     gap: 16px;
-    color: var(--text-secondary);
 }
 
-.settings-toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    padding: 12px 18px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+.settings-card-icon {
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    animation: toastSlideUp 0.3s ease-out;
-    z-index: 1000;
-    font-size: 13px;
+    justify-content: center;
+    color: white;
 }
 
-.settings-toast.success {
-    border-left: 4px solid #22c55e;
+.settings-card-icon.notifications { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.settings-card-icon.appearance { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.settings-card-icon.ai { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.settings-card-icon.security { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.settings-card-icon.accessibility { background: linear-gradient(135deg, #10b981, #059669); }
+.settings-card-icon.privacy { background: linear-gradient(135deg, #64748b, #475569); }
+
+.settings-card-title {
+    font-size: 18px;
+    font-weight: 700;
 }
 
-.settings-toast.error {
-    border-left: 4px solid #ef4444;
+.settings-card-body {
+    padding: 0 24px 24px 24px;
 }
 
-@keyframes toastSlideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-}
-
+/* Animations */
 @keyframes settingsFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* =====================================================
-   RESPONSIVE
-   ===================================================== */
+.animate-spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-/* Tablet landscape */
-@media (max-width: 1200px) {
-    .settings-page {
-        padding: 24px;
-        gap: 24px;
-    }
-
-    .settings-sidebar {
-        width: 300px;
-    }
-}
-
-/* Tablet portrait — stack layout */
-@media (max-width: 992px) {
-    .settings-page {
-        flex-direction: column;
-        overflow-y: auto;
-        overflow-x: hidden;
-        height: auto;
-        min-height: 100%;
-    }
-
-    .settings-main {
-        overflow-y: visible;
-        padding-right: 0;
-        padding-bottom: 24px;
-    }
-
-    .settings-sidebar {
-        width: 100%;
-        order: -1; /* Status panel on top */
-    }
-
-    .settings-sidebar .status-panel {
-        position: static;
-    }
-}
-
-/* Mobile */
-@media (max-width: 640px) {
-    .settings-page {
-        padding: 16px;
-        gap: 16px;
-    }
-
-    .settings-header h1 {
-        font-size: 22px;
-    }
-
-    .settings-card-header {
-        padding: 14px 16px;
-    }
-
-    .settings-card-body {
-        padding: 4px 16px 16px 16px;
-    }
-
-    .settings-card-icon {
-        width: 36px;
-        height: 36px;
-    }
-
-    .settings-card-title {
-        font-size: 15px;
-    }
-
-    .setting-item {
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .setting-info {
-        padding-right: 0;
-        flex-basis: 100%;
-    }
-
-    .toggle-switch {
-        margin-left: auto;
-    }
-}
-
-/* =====================================================
-   LIGHT THEME OVERRIDES
-   ===================================================== */
-
-[data-theme="light"] .settings-card {
-    box-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.06),
-        0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="light"] .settings-card:hover {
-    box-shadow:
-        0 8px 24px rgba(0, 0, 0, 0.08),
-        0 4px 8px rgba(0, 0, 0, 0.06);
-}
-
-[data-theme="light"] .setting-item {
-    border-bottom-color: rgba(0, 0, 0, 0.06);
-}
-
-[data-theme="light"] .status-item {
-    border-bottom-color: rgba(0, 0, 0, 0.06);
-}
-
-[data-theme="light"] .settings-main::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.12);
-}
-
-[data-theme="light"] .settings-main::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.2);
-}
-
-[data-theme="light"] .settings-card-header:hover {
-    background: rgba(0, 0, 0, 0.02);
+.animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+rgba(0, 0, 0, 0.02);
 }
