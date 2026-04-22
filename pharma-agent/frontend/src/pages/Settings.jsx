@@ -11,7 +11,7 @@ import SettingsCard from '../components/settings/SettingsCard';
 import SystemStatusPanel from '../components/settings/SystemStatusPanel';
 import SettingItem from '../components/settings/SettingItem';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://pharmaagent.onrender.com';
 const USER_ID = 1; // Default user ID
 
 function SettingsPage() {

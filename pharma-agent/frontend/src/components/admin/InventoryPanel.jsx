@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, RefreshCw, Search, X, Check, AlertTriangle } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://pharmaagent.onrender.com';
 
 function InventoryPanel({ onStatsChange }) {
     const [inventory, setInventory] = useState([]);

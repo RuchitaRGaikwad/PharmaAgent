@@ -56,7 +56,7 @@ function Header({
                             const newState = !adminMode;
                             setAdminMode(newState);
                             // Log admin toggle
-                            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+                            const apiBase = import.meta.env.VITE_API_URL || 'https://pharmaagent.onrender.com';
                             fetch(`${apiBase}/admin/toggle-log`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },

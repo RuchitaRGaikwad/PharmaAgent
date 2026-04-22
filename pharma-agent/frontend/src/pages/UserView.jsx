@@ -55,7 +55,7 @@ function UserView() {
             console.error('Chat error:', error);
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: "I'm sorry, I couldn't process your request. Please make sure the backend server is running on http://localhost:8000 and try again."
+                content: "I'm sorry, I couldn't process your request. Please ensure the backend is running and try again."
             }]);
         } finally {
             setIsLoading(false);
